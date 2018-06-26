@@ -47,16 +47,13 @@ def main():
     print("WARNING: All rewards are clipped or normalized so you need to use a monitor (see envs.py) or visdom plot to get true rewards")
     print("#######")
 
-    print('args.num_processes= '+str(args.num_processes))
-    print('args.cuda= '+str(args.cuda))
-
     torch.set_num_threads(4)
-
     if args.vis:
         from visdom import Visdom
         viz = Visdom(port=args.port)
         win = None
 
+    # init env #################################################################
     envs = [make_env(args.env_name, args.seed, i, args.log_dir, args.add_timestep)
                 for i in range(args.num_processes)]
 
@@ -71,6 +68,7 @@ def main():
     obs_shape = envs.observation_space.shape
     obs_shape = (obs_shape[0] * args.num_stack, *obs_shape[1:])
 
+    # init agent ###############################################################
     actor_critic = Policy(obs_shape, envs.action_space, args.recurrent_policy)
 
     if envs.action_space.__class__.__name__ == "Discrete":
@@ -94,6 +92,8 @@ def main():
     elif args.algo == 'acktr':
         agent = algo.A2C_ACKTR(actor_critic, args.value_loss_coef,
                                args.entropy_coef, acktr=True)
+
+    assert False, ':)'
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes, obs_shape, envs.action_space, actor_critic.state_size)
     current_obs = torch.zeros(args.num_processes, *obs_shape)
