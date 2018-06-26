@@ -47,7 +47,10 @@ def main():
     print("WARNING: All rewards are clipped or normalized so you need to use a monitor (see envs.py) or visdom plot to get true rewards")
     print("#######")
 
-    torch.set_num_threads(1)
+    print('args.num_processes= '+str(args.num_processes))
+    print('args.cuda= '+str(args.cuda))
+
+    torch.set_num_threads(4)
 
     if args.vis:
         from visdom import Visdom
@@ -115,8 +118,10 @@ def main():
         current_obs = current_obs.cuda()
         rollouts.cuda()
 
+    # Update loop ##############################################################
     start = time.time()
     for j in range(num_updates):
+        ## Rollout #############################################################
         for step in range(args.num_steps):
             # Sample actions
             with torch.no_grad():
@@ -148,6 +153,7 @@ def main():
             update_current_obs(obs)
             rollouts.insert(current_obs, states, action, action_log_prob, value, reward, masks)
 
+        # Learning #############################################################
         with torch.no_grad():
             next_value = actor_critic.get_value(rollouts.observations[-1],
                                                 rollouts.states[-1],
@@ -159,6 +165,7 @@ def main():
 
         rollouts.after_update()
 
+        # Logging ##############################################################
         if j % args.save_interval == 0 and args.save_dir != "":
             save_path = os.path.join(args.save_dir, args.algo)
             try:
@@ -179,8 +186,8 @@ def main():
         if j % args.log_interval == 0:
             end = time.time()
             total_num_steps = (j + 1) * args.num_processes * args.num_steps
-            print("Updates {}, num timesteps {}, FPS {}, mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}, entropy {:.5f}, value loss {:.5f}, policy loss {:.5f}".
-                format(j, total_num_steps,
+            print("Updates {}/{}, num timesteps {}, FPS {}, mean/median reward {:.1f}/{:.1f}, min/max reward {:.1f}/{:.1f}, entropy {:.5f}, value loss {:.5f}, policy loss {:.5f}".
+                format(j, num_updates-1, total_num_steps,
                        int(total_num_steps / (end - start)),
                        final_rewards.mean(),
                        final_rewards.median(),
