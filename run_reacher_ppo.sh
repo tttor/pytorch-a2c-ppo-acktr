@@ -2,17 +2,21 @@
 
 python main.py \
 --env-name "Reacher-v2" \
---algo ppo \
---use-gae \
+--seed 123 \
 --num-stack 1 \
---num-steps 2048 \
+--gamma 0.99 \
+--eps 1e-5 \
 --num-processes 1 \
---lr 3e-4 \
---entropy-coef 0 \
---value-loss-coef 1 \
+--num-steps 2048 \
+--algo ppo \
+--clip-param 0.2 \
 --ppo-epoch 10 \
 --num-mini-batch 32 \
---gamma 0.99 \
+--value-loss-coef 1.0 \
+--entropy-coef 0.0 \
+--lr 3e-4 \
+--max-grad-norm 0.5 \
+--use-gae \
 --tau 0.95 \
 --num-frames 1000000 \
 --vis-interval 1 \
