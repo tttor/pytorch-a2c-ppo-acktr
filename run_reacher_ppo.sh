@@ -16,4 +16,5 @@ python main.py \
 --tau 0.95 \
 --num-frames 1000000 \
 --vis-interval 1 \
+--log-dir /home/tor/xprmt/ikostrikov \
 --log-interval 1
