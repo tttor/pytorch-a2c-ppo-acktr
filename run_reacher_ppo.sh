@@ -16,5 +16,4 @@ python main.py \
 --tau 0.95 \
 --num-frames 1000000 \
 --vis-interval 1 \
---log-interval 1 \
---no-vis
+--log-interval 1
