@@ -47,11 +47,10 @@ def main():
     observ_dim = envs.observation_space.shape[0]
     action_dim = envs.action_space.shape[0]
 
-    # actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
-    actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
-                                          actor_output_dim=action_dim,
-                                          critic_output_dim=1)
-    exit()
+    actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
+    # actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
+    #                                       actor_output_dim=action_dim,
+    #                                       critic_output_dim=1)
 
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                               envs.action_space, actor_critic_net.state_size)
@@ -74,6 +73,12 @@ def main():
                                                     rollouts.states[step_idx],
                                                     rollouts.masks[step_idx])
                  value, action, action_log_prob, state = act_resp
+
+            print(value)
+            print(action)
+            print(action_log_prob)
+            print(state)
+            exit()
 
             # Step
             observ, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
