@@ -33,6 +33,9 @@ class ActorCriticNetwork(nn.Module):
         hidden_actor = self.hidden_net.actor_hidden_net(observ)
         hidden_critic = self.hidden_net.critic_hidden_net(observ)
         print(hidden_critic)
+        for n, p in self.hidden_net.critic_hidden_net.named_parameters():
+            print(n)
+            print(p.data)
 
         return self.critic_output_net(hidden_critic), hidden_actor
 

@@ -69,10 +69,10 @@ def main():
         for step_idx in range(nstep):
             # Sample actions
             with torch.no_grad():
-                 act_resp = actor_critic_net.act(rollouts.observations[step_idx],
-                                                    rollouts.states[step_idx],
-                                                    rollouts.masks[step_idx])
-                 value, action, action_log_prob, state = act_resp
+                 act_response = actor_critic_net.act(rollouts.observations[step_idx],
+                                                        rollouts.states[step_idx],
+                                                        rollouts.masks[step_idx])
+                 value, action, action_log_prob, state = act_response
 
             print(value)
             print(action)
