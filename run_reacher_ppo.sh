@@ -6,6 +6,7 @@ python main.py \
 --num-stack 1 \
 --gamma 0.99 \
 --eps 1e-5 \
+--num-frames 1000000 \
 --num-processes 1 \
 --num-steps 2048 \
 --algo ppo \
@@ -18,7 +19,6 @@ python main.py \
 --max-grad-norm 0.5 \
 --use-gae \
 --tau 0.95 \
---num-frames 1000000 \
 --vis-interval 1 \
 --log-dir /home/tor/xprmt/ikostrikov \
 --log-interval 1
