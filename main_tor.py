@@ -10,7 +10,7 @@ from baselines.common.vec_env.vec_normalize import VecNormalize
 
 import algo
 from envs import make_env
-# from model import Policy
+from model import Policy
 from model_tor import ActorCriticNetwork
 from storage import RolloutStorage
 
@@ -21,7 +21,6 @@ def main():
     nupdate = int(sys.argv[1])
 
     # Init
-
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     env_id = 'Reacher-v2'
@@ -45,11 +44,14 @@ def main():
     assert len(envs.observation_space.shape)==1
     assert len(envs.action_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
+    observ_dim = envs.observation_space.shape[0]
+    action_dim = envs.action_space.shape[0]
 
     # actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
-    actor_critic_net = ActorCriticNetwork(input_dim=envs.observation_space.shape,
-                                          actor_output_dim=envs.action_space.shape,
+    actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
+                                          actor_output_dim=action_dim,
                                           critic_output_dim=1)
+    exit()
 
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                               envs.action_space, actor_critic_net.state_size)
