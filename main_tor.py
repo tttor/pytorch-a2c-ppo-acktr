@@ -15,10 +15,11 @@ from model_tor import ActorCriticNetwork
 from storage import RolloutStorage
 
 def main():
-    if len(sys.argv)!=2:
+    if len(sys.argv)!=3:
         print('Wrong argv!')
         return
     nupdate = int(sys.argv[1])
+    net_id = sys.argv[2]
 
     # Init
     viz = Visdom(port=8097)
@@ -47,10 +48,15 @@ def main():
     observ_dim = envs.observation_space.shape[0]
     action_dim = envs.action_space.shape[0]
 
-    # actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
-    actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
-                                          actor_output_dim=action_dim,
-                                          critic_output_dim=1)
+    if net_id=='orinet':
+        actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
+                                    recurrent_policy=False)
+    elif net_id=='tornet':
+        actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
+                                                actor_output_dim=action_dim,
+                                                critic_output_dim=1)
+    else:
+        raise NotImplementedError
 
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                               envs.action_space, actor_critic_net.state_size)
@@ -74,11 +80,11 @@ def main():
                                                         rollouts.masks[step_idx])
                  value, action, action_log_prob, state = act_response
 
-            print(value)
-            print(action)
-            print(action_log_prob)
-            print(state)
-            exit()
+            # print(value)
+            # print(action)
+            # print(action_log_prob)
+            # print(state)
+            # exit()
 
             # Step
             observ, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
@@ -96,6 +102,7 @@ def main():
                                                     rollouts.states[-1],
                                                     rollouts.masks[-1])
             next_value = next_value.detach()
+            print(next_value)
 
         rollouts.compute_returns(next_value, gamma=gamma, use_gae=False, tau=None)
 

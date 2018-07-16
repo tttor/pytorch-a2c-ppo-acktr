@@ -16,9 +16,6 @@ class ActorCriticNetwork(nn.Module):
         # self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: uncomment me, rm the one in hiddenNet
         self.state_size = critic_output_dim # TODO: make naming more descriptive
 
-    def forward(self, inputs, states, masks):
-        raise NotImplementedError
-
     def act(self, observ, states, masks):
         value, meta_action = self._forward(observ)
 
@@ -28,6 +25,13 @@ class ActorCriticNetwork(nn.Module):
         action_log_prob = action_log_prob.sum(dim=1, keepdim=True)
 
         return value, action, action_log_prob, states
+
+    def get_value(self, observ, states, masks):
+        value, _ = self._forward(observ)
+        return value
+
+    def forward(self, inputs, states, masks):
+        raise NotImplementedError
 
     def _forward(self, observ):
         hidden_actor = self.hidden_net.actor_hidden_net(observ)
