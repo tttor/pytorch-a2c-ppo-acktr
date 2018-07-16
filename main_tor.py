@@ -44,19 +44,17 @@ def main():
     assert envs.action_space.__class__.__name__ == "Box"
 
     actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
-
     agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
                      value_loss_coef=1.0, entropy_coef=0.0,
                      lr=3e-4, eps=eps, max_grad_norm=0.5)
-
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                               envs.action_space, actor_critic_net.state_size)
 
+    # Learning
     observ = envs.reset()
     observ = torch.from_numpy(observ).float()
     rollouts.observations[0].copy_(observ)
 
-    # Learning
     for update_idx in range(nupdate):
         # Rollout
         for step_idx in range(nstep):
