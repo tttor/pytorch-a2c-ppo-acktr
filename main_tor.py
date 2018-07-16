@@ -15,7 +15,7 @@ from storage import RolloutStorage
 
 def main():
     if len(sys.argv)!=2:
-        print('Wring argv!')
+        print('Wrong argv!')
         return
     nupdate = int(sys.argv[1])
 
@@ -23,6 +23,7 @@ def main():
     torch.set_num_threads(4)
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
+    env_id = 'Reacher-v2'
     nprocess = 1
     nstack = 1
     nstep = 2500
@@ -33,7 +34,7 @@ def main():
     assert nprocess==1
     assert nstack==1
 
-    envs = [make_env('Reacher-v2', seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
+    envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
