@@ -35,7 +35,8 @@ eprew = sum(self.rewards)
 eplen = len(self.rewards)
 epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart, 6)}
 ```
-* reset is not called during rollout
+* reset is not called during rollout;
+  * this is similar with that of openai-baselines
 * filter both reward and observ using VecNormalize()
 
 ## setup
