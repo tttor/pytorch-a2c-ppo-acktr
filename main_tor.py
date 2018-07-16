@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+
 import torch
 import numpy as np
 from visdom import Visdom
@@ -12,17 +14,21 @@ from model import Policy
 from storage import RolloutStorage
 
 def main():
+    if len(sys.argv)!=2:
+        print('Wring argv!')
+        return
+    nupdate = int(sys.argv[1])
+
     # Init
     torch.set_num_threads(4)
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     nprocess = 1
-    nstep = 2048
+    nstep = 2500
     nstack = 1
     gamma = 0.99
     eps = 1e-5
     seed = 123
-    nupdate = 3
     log_interval = 1
     assert nprocess==1
     assert nstack==1
@@ -30,7 +36,7 @@ def main():
     envs = [make_env('Reacher-v2', seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
-    envs = VecNormalize(envs, gamma=gamma)
+    envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
     assert len(envs.observation_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
 
