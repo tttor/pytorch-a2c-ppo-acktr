@@ -32,6 +32,7 @@ class ActorCriticNetwork(nn.Module):
     def _forward(self, observ):
         hidden_actor = self.hidden_net.actor_hidden_net(observ)
         hidden_critic = self.hidden_net.critic_hidden_net(observ)
+        print(hidden_critic)
 
         return self.critic_output_net(hidden_critic), hidden_actor
 
