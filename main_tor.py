@@ -16,14 +16,14 @@ def main():
     torch.set_num_threads(4)
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
-    nframe = 500000
     nprocess = 1
     nstep = 2048
     nstack = 1
     gamma = 0.99
     eps = 1e-5
     seed = 123
-    nupdate = int(nframe) // nstep // nprocess
+    nupdate = 3
+    log_interval = 1
     assert nprocess==1
     assert nstack==1
 
@@ -50,7 +50,6 @@ def main():
     # Learning
     for update_idx in range(nupdate):
         # Rollout
-        print('rollouts...')
         for step_idx in range(nstep):
             # Sample actions
             with torch.no_grad():
@@ -70,7 +69,6 @@ def main():
             rollouts.insert(observ, state, action, action_log_prob, value, reward, mask)
 
         # Update
-        print('update...')
         with torch.no_grad():
             next_value = actor_critic_net.get_value(rollouts.observations[-1],
                                                     rollouts.states[-1],
@@ -79,7 +77,18 @@ def main():
 
         rollouts.compute_returns(next_value, gamma=gamma, use_gae=False, tau=None)
 
-        exit()
+        value_loss, action_loss, dist_entropy = agent.update(rollouts)
+        rollouts.after_update()
+
+        # Log
+        if update_idx % log_interval == 0:
+            total_nstep = (update_idx+1) * nprocess * nstep
+            logs  = ['update {}/{}'.format(update_idx+1, nupdate)]
+            logs += ['nstep {}'.format(total_nstep)]
+            logs += ['action_loss {:.5f}'.format(action_loss)]
+            logs += ['value_loss {:.5f}'.format(value_loss)]
+            logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
+            print(' | '.join(logs))
 
 if __name__ == '__main__':
     main()
