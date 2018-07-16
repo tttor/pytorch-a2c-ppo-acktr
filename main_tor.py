@@ -24,8 +24,8 @@ def main():
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     nprocess = 1
-    nstep = 2500
     nstack = 1
+    nstep = 2500
     gamma = 0.99
     eps = 1e-5
     seed = 123
