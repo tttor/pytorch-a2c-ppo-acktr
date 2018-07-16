@@ -102,7 +102,6 @@ def main():
                                                     rollouts.states[-1],
                                                     rollouts.masks[-1])
             next_value = next_value.detach()
-            print(next_value)
 
         rollouts.compute_returns(next_value, gamma=gamma, use_gae=False, tau=None)
 
