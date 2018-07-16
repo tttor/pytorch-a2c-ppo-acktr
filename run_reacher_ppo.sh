@@ -17,8 +17,6 @@ python main.py \
 --entropy-coef 0.0 \
 --lr 3e-4 \
 --max-grad-norm 0.5 \
---use-gae \
---tau 0.95 \
 --vis-interval 1 \
 --log-dir /home/tor/xprmt/ikostrikov \
 --log-interval 1
