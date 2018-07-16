@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import torch
+import numpy as np
 from visdom import Visdom
 
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
@@ -15,18 +16,21 @@ def main():
     torch.set_num_threads(4)
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
+    nframe = 500000
     nprocess = 1
-    nstack = 1
     nstep = 2048
+    nstack = 1
     gamma = 0.99
     eps = 1e-5
     seed = 123
+    nupdate = int(nframe) // nstep // nprocess
+    assert nprocess==1
+    assert nstack==1
 
     envs = [make_env('Reacher-v2', seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, gamma=gamma)
-    assert nprocess==1
     assert len(envs.observation_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
 
@@ -38,6 +42,37 @@ def main():
 
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                               envs.action_space, policy.state_size)
+
+    observ = envs.reset()
+    observ = torch.from_numpy(observ).float()
+    rollouts.observations[0].copy_(observ)
+
+    # Learning
+    for update_idx in range(nupdate):
+        # Rollout
+        for step_idx in range(nstep):
+            # Sample actions
+            with torch.no_grad():
+                 act_resp = policy.act(rollouts.observations[step_idx],
+                                       rollouts.states[step_idx],
+                                       rollouts.masks[step_idx])
+                 value, action, action_log_prob, state = act_resp
+
+            # Step
+            observ, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
+
+            mask = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in done])
+            reward = torch.from_numpy(np.expand_dims(np.stack(reward), 1)).float()
+            observ = torch.from_numpy(observ).float()
+            observ *= mask
+
+            rollouts.insert(observ, state, action, action_log_prob, value, reward, mask)
+            exit()
+
+
+
+
+
 
 if __name__ == '__main__':
     main()
