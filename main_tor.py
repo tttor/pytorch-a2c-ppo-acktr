@@ -10,7 +10,8 @@ from baselines.common.vec_env.vec_normalize import VecNormalize
 
 import algo
 from envs import make_env
-from model import Policy
+# from model import Policy
+from model_tor import ActorCriticNetwork
 from storage import RolloutStorage
 
 def main():
@@ -35,20 +36,27 @@ def main():
     torch.set_num_threads(4)
     assert nprocess==1
     assert nstack==1
+    # assert not using cuda!
 
     envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
     assert len(envs.observation_space.shape)==1
+    assert len(envs.action_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
 
-    actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
+    # actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
+    actor_critic_net = ActorCriticNetwork(input_dim=envs.observation_space.shape,
+                                          actor_output_dim=envs.action_space.shape,
+                                          critic_output_dim=1)
+
+    rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
+                              envs.action_space, actor_critic_net.state_size)
+
     agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
                      value_loss_coef=1.0, entropy_coef=0.0,
                      lr=3e-4, eps=eps, max_grad_norm=0.5)
-    rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
-                              envs.action_space, actor_critic_net.state_size)
 
     # Learning
     observ = envs.reset()
