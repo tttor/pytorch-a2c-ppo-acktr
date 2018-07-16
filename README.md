@@ -4,7 +4,7 @@
 * what does this do? from openai-baselines
   `envs = VecNormalize(envs, gamma=args.gamma)`
 * max_grad_norm?
-
+* states? cf observation
 * current_obs vs obs?
 * `mask` used for?
   * masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in done])

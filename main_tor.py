@@ -34,14 +34,14 @@ def main():
     assert len(envs.observation_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
 
-    policy = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
+    actor_critic_net = Policy(envs.observation_space.shape, envs.action_space, recurrent_policy=False)
 
-    agent = algo.PPO(policy, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
+    agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
                      value_loss_coef=1.0, entropy_coef=0.0,
                      lr=3e-4, eps=eps, max_grad_norm=0.5)
 
     rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
-                              envs.action_space, policy.state_size)
+                              envs.action_space, actor_critic_net.state_size)
 
     observ = envs.reset()
     observ = torch.from_numpy(observ).float()
@@ -50,12 +50,13 @@ def main():
     # Learning
     for update_idx in range(nupdate):
         # Rollout
+        print('rollouts...')
         for step_idx in range(nstep):
             # Sample actions
             with torch.no_grad():
-                 act_resp = policy.act(rollouts.observations[step_idx],
-                                       rollouts.states[step_idx],
-                                       rollouts.masks[step_idx])
+                 act_resp = actor_critic_net.act(rollouts.observations[step_idx],
+                                                    rollouts.states[step_idx],
+                                                    rollouts.masks[step_idx])
                  value, action, action_log_prob, state = act_resp
 
             # Step
@@ -67,12 +68,18 @@ def main():
             observ *= mask
 
             rollouts.insert(observ, state, action, action_log_prob, value, reward, mask)
-            exit()
 
+        # Update
+        print('update...')
+        with torch.no_grad():
+            next_value = actor_critic_net.get_value(rollouts.observations[-1],
+                                                    rollouts.states[-1],
+                                                    rollouts.masks[-1])
+            next_value = next_value.detach()
 
+        rollouts.compute_returns(next_value, gamma=gamma, use_gae=False, tau=None)
 
-
-
+        exit()
 
 if __name__ == '__main__':
     main()
