@@ -20,7 +20,7 @@ def main():
     nupdate = int(sys.argv[1])
 
     # Init
-    torch.set_num_threads(4)
+
     viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     env_id = 'Reacher-v2'
@@ -31,6 +31,8 @@ def main():
     eps = 1e-5
     seed = 123
     log_interval = 1
+    torch.manual_seed(seed)
+    torch.set_num_threads(4)
     assert nprocess==1
     assert nstack==1
 
