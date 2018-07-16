@@ -8,11 +8,12 @@ class ActorCriticNetwork(nn.Module):
     def __init__(self, input_dim, actor_output_dim, critic_output_dim):
         super(ActorCriticNetwork, self).__init__()
 
-        self.hidden_net = ActorCriticHiddenNetwork(input_dim)
+        hidden_dim = 64
+        self.hidden_net = ActorCriticHiddenNetwork(input_dim, hidden_dim)
 
         # Output networks
-        self.actor_output_net = GaussianDistributionNetwork(self.hidden_net.hidden_dim, actor_output_dim)
-        self.critic_output_net = init_param_openaibaselines(nn.Linear(self.hidden_net.hidden_dim, critic_output_dim))
+        self.actor_output_net = GaussianDistributionNetwork(hidden_dim, actor_output_dim)
+        self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim))
         self.state_size = critic_output_dim # TODO: make naming more descriptive
 
     def forward(self, inputs, states, masks):
@@ -35,9 +36,8 @@ class ActorCriticNetwork(nn.Module):
         return self.critic_output_net(hidden_critic), hidden_actor
 
 class ActorCriticHiddenNetwork(nn.Module):
-    def __init__(self, input_dim):
+    def __init__(self, input_dim, hidden_dim):
         super(ActorCriticHiddenNetwork, self).__init__()
-        hidden_dim = 64
 
         self.actor_hidden_net = nn.Sequential(
             init_param_openaibaselines(nn.Linear(input_dim, hidden_dim)),
@@ -53,11 +53,7 @@ class ActorCriticHiddenNetwork(nn.Module):
             nn.Tanh()
         )
 
-        self.hidden_dim = hidden_dim
-
     def forward(self, inputs, states, masks):
         raise NotImplementedError
-
-
 
 
