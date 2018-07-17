@@ -21,7 +21,7 @@ def main():
     env_id = 'Reacher-v2'
     nprocess = 1
     nstack = 1
-    nstep = 2500
+    nstep_per_update = 2500
     gamma = 0.99
     eps = 1e-5
     seed = 123
@@ -58,7 +58,7 @@ def main():
 
         actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
                                     recurrent_policy=False)
-        rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
+        rollouts = RolloutStorage(nstep_per_update, nprocess, envs.observation_space.shape,
                                   envs.action_space, actor_critic_net.state_size)
         agent = algo.PPO(actor_critic_net, ppo_clip_eps,
                             ppo_nepoch, ppo_nminibatch,
@@ -72,7 +72,7 @@ def main():
         actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
                                                 actor_output_dim=action_dim,
                                                 critic_output_dim=1)
-        rollouts = ExperienceBuffer(nstep, nprocess, observ_dim, action_dim)
+        rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
         agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
                             ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
     else:
@@ -85,7 +85,7 @@ def main():
 
     for update_idx in range(nupdate):
         # Rollout
-        for step_idx in range(nstep):
+        for step_idx in range(nstep_per_update):
             # Sample actions
             with torch.no_grad():
                 if mode=='ori':
@@ -139,12 +139,12 @@ def main():
 
         # Log
         if (update_idx % log_interval)==0:
-            total_nstep = (update_idx+1) * nprocess * nstep
+            nstep_so_far = (update_idx+1) * nprocess * nstep_per_update
             logs  = ['update {}/{}'.format(update_idx+1, nupdate)]
-            logs += ['nstep {}'.format(total_nstep)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
             logs += ['value_loss {:.5f}'.format(value_loss)]
             logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
+            logs += ['nstep_so_far {}'.format(nstep_so_far)]
             print(' | '.join(logs))
 
 if __name__ == '__main__':
