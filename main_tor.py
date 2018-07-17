@@ -15,12 +15,11 @@ from storage import RolloutStorage
 from storage_tor import ExperienceBuffer
 
 def main():
-    if len(sys.argv)!=4:
+    if len(sys.argv)!=3:
         print('Wrong argv!')
         return
     nupdate = int(sys.argv[1])
-    net_id = sys.argv[2]
-    rollout_id = sys.argv[3]
+    mode = sys.argv[2]
 
     # Init
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
@@ -49,25 +48,18 @@ def main():
     observ_dim = envs.observation_space.shape[0]
     action_dim = envs.action_space.shape[0]
 
-    if net_id=='orinet':
+    if mode=='ori':
         actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
                                     recurrent_policy=False)
-    elif net_id=='tornet':
+        rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
+                                  envs.action_space, actor_critic_net.state_size)
+    elif mode=='tor':
         actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
                                                 actor_output_dim=action_dim,
                                                 critic_output_dim=1)
-    else:
-        raise NotImplementedError
-
-    if rollout_id=='oriroll':
-        rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
-                                  envs.action_space, actor_critic_net.state_size)
-    elif rollout_id=='torroll':
         rollouts = ExperienceBuffer(nstep, nprocess, observ_dim, action_dim)
     else:
         raise NotImplementedError
-
-    exit()
 
     agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
                      value_loss_coef=1.0, entropy_coef=0.0,
@@ -83,15 +75,19 @@ def main():
         for step_idx in range(nstep):
             # Sample actions
             with torch.no_grad():
-                 act_response = actor_critic_net.act(rollouts.observations[step_idx],
+                if mode=='ori':
+                    act_response = actor_critic_net.act(rollouts.observations[step_idx],
                                                         rollouts.states[step_idx],
                                                         rollouts.masks[step_idx])
-                 value, action, action_log_prob, state = act_response
+                    pred_state_value, action, action_log_prob, state = act_response
+                elif mode=='tor':
+                    action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
+                else:
+                    raise NotImplementedError
 
-            # print(value)
             # print(action)
             # print(action_log_prob)
-            # print(state)
+            # print(pred_state_value)
             # exit()
 
             # Step
@@ -102,7 +98,12 @@ def main():
             observ = torch.from_numpy(observ).float()
             observ *= mask
 
-            rollouts.insert(observ, state, action, action_log_prob, value, reward, mask)
+            if mode=='ori':
+                rollouts.insert(observ, state, action, action_log_prob, pred_state_value, reward, mask)
+            elif mode=='tor':
+                rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ)
+            else:
+                raise NotImplementedError
 
         # Update
         with torch.no_grad():
