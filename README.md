@@ -1,7 +1,6 @@
 # study-ppo
 
 ## question
-* max_grad_norm?
 * states? cf observation
 * current_obs vs obs?
 * random seed does not control gym?
@@ -16,7 +15,30 @@ def compute_returns(self, next_value, use_gae, gamma, tau):
             self.returns[step] = self.returns[step + 1] * \
                 gamma * self.masks[step + 1] + self.rewards[step]
 ```
+* why this becomes old_action_log_probs?
+  there is not update yet, isnt?
+```
+data_generator = rollouts.feed_forward_generator(
+advantages, self.num_mini_batch)
 
+for sample in data_generator:
+    observations_batch, states_batch, actions_batch, \
+       return_batch, masks_batch, old_action_log_probs_batch, \
+            adv_targ = sample
+```
+
+## answered question
+* max_grad_norm?
+  * for clipping the grad, before optim.step()
+* why adv computed this way?
+  Q from empirical;  V from prediction
+  * thus, we have predicted advantage, only Q can be obtained empirically
+  * true V is expectation over all actions
+```py
+def update(self, rollouts, eps=1e-5):
+    # Compute advantages: $A(s_t, a_t) = Q(s_t, a_t) - V(s_t, a_t)$
+    advantages = rollouts.returns[:-1] - rollouts.value_preds[:-1]
+```
 * what does this do? from openai-baselines:
   `envs = VecNormalize(envs, gamma=args.gamma)`
   * normalize and clip observ and reward
@@ -39,6 +61,11 @@ def __init__(self, venv, ob=True, ret=True, clipob=10., cliprew=10., gamma=0.99,
   * see: num_updates = int(args.num_frames) // args.num_steps // args.num_processes
 
 ## fact
+* do clip the gradient
+```
+nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
+                         self.max_grad_norm)
+```
 * use state value, NOT action-state value
 * plot return vs nstep, using
   * smothing: smooth_reward_curve(x, y)

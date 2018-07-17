@@ -29,14 +29,14 @@ class ActorCriticNetwork(nn.Module):
         state_value, _ = self._forward(observ)
         return state_value
 
-    def evaluate_actions(self, observ, state, mask, action):
+    def evaluate_actions(self, observ, action):
         value, meta_action = self._forward(observ)
 
         action_distrib = self.actor_output_net(meta_action)
         action_log_prob = action_distrib.log_prob(action).sum(dim=-1, keepdim=True)
         action_distrib_entropy = action_distrib.entropy().mean()
 
-        return value, action_log_prob, action_distrib_entropy, state
+        return value, action_log_prob, action_distrib_entropy
 
     def forward(self, inputs, states, masks):
         raise NotImplementedError

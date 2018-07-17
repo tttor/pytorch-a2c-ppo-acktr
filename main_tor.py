@@ -7,12 +7,8 @@ import numpy as np
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
 
-import algo
+
 from envs import make_env
-from model import Policy
-from model_tor import ActorCriticNetwork
-from storage import RolloutStorage
-from storage_tor import ExperienceBuffer
 
 def main():
     if len(sys.argv)!=3:
@@ -38,6 +34,14 @@ def main():
     # assert not using cuda!
     # assert not using recurrent net!
 
+    ppo_value_loss_coef = 1.0
+    ppo_entropy_coef = 0.0
+    ppo_clip_eps = 0.2
+    ppo_nepoch = 10
+    ppo_nminibatch = 32
+    ppo_lr = 3e-4
+    ppo_max_grad_norm = 0.5
+
     envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
@@ -49,21 +53,31 @@ def main():
     action_dim = envs.action_space.shape[0]
 
     if mode=='ori':
+        from model import Policy
+        from storage import RolloutStorage
+        import algo
+
         actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
                                     recurrent_policy=False)
         rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
                                   envs.action_space, actor_critic_net.state_size)
+        agent = algo.PPO(actor_critic_net, ppo_clip_eps,
+                            ppo_nepoch, ppo_nminibatch,
+                            ppo_value_loss_coef, ppo_entropy_coef,
+                            ppo_lr, eps, ppo_max_grad_norm)
     elif mode=='tor':
+        from model_tor import ActorCriticNetwork
+        from storage_tor import ExperienceBuffer
+        from ppo_tor import VanillaPPO
+
         actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
                                                 actor_output_dim=action_dim,
                                                 critic_output_dim=1)
         rollouts = ExperienceBuffer(nstep, nprocess, observ_dim, action_dim)
+        agent = algo.VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
+                                lr, eps, ppo_nepoch, ppo_nminibatch)
     else:
         raise NotImplementedError
-
-    agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
-                     value_loss_coef=1.0, entropy_coef=0.0,
-                     lr=3e-4, eps=eps, max_grad_norm=0.5)
 
     # Learning
     observ = envs.reset()
@@ -119,7 +133,6 @@ def main():
             rollouts.compute_returns(pred_next_state_value, gamma)
         else:
             raise NotImplementedError
-        exit()
 
         # Update
         value_loss, action_loss, dist_entropy = agent.update(rollouts)
