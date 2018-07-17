@@ -3,7 +3,6 @@ import sys
 
 import torch
 import numpy as np
-from visdom import Visdom
 
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
@@ -22,7 +21,6 @@ def main():
     net_id = sys.argv[2]
 
     # Init
-    viz = Visdom(port=8097)
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     env_id = 'Reacher-v2'
     nprocess = 1
