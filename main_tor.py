@@ -45,11 +45,11 @@ def main():
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
+    observ_dim = envs.observation_space.shape[0]
+    action_dim = envs.action_space.shape[0]
     assert len(envs.observation_space.shape)==1
     assert len(envs.action_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
-    observ_dim = envs.observation_space.shape[0]
-    action_dim = envs.action_space.shape[0]
 
     if mode=='ori':
         from model import Policy
