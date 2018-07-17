@@ -16,36 +16,40 @@ class VanillaPPO():
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
         # Update in multiple epoches
-        action_loss = []; value_loss = []; action_distrib_entropy = []
-
+        action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0
         for epoch_idx in range(self.nepoch):
             sample_gen = rollouts.feed_forward_generator(pred_advs, self.nminibatch)
 
+            mb_idx = 0
             for samples in sample_gen:
                 _observs, _actions, _action_log_probs, _returns, _pred_advs, _masks = samples
-                pred_state_values, action_log_probs, _action_distrib_entropy = self.actor_critic_net.evaluate_actions(_observs, _actions)
+                pred_state_values, action_log_probs, action_distrib_entropy = self.actor_critic_net.evaluate_actions(_observs, _actions)
 
                 ratio = torch.exp(action_log_probs - _action_log_probs)
                 surr1 = ratio * _pred_advs
                 surr2 = torch.clamp(ratio, 1.0 - self.clip_eps, 1.0 + self.clip_eps) * _pred_advs
 
-                _action_loss = - torch.min(surr1, surr2).mean()
-                _value_loss = fn.mse_loss(_returns, pred_state_values)
-                loss = _action_loss + _value_loss
+                action_loss = - torch.min(surr1, surr2).mean()
+                value_loss = fn.mse_loss(_returns, pred_state_values)
+                loss = action_loss + value_loss
 
                 self.optim.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
                 self.optim.step()
 
-                action_loss.append(_action_loss)
-                value_loss.append(_value_loss)
-                action_distrib_entropy.append(_action_distrib_entropy)
+                action_loss_sum += action_loss.item()
+                value_loss_sum += value_loss.item()
+                action_distrib_entropy_sum += action_distrib_entropy.item()
 
-        # Take mean of losses
-        action_loss = torch.tensor(action_loss).mean()
-        action_distrib_entropy = torch.tensor(action_distrib_entropy).mean()
-        value_loss = torch.tensor(value_loss).mean()
+        # Summarize losses
+        # Note: nupdate below may not be equal to loop iteration above since
+        # in sampler generator we set drop_last=False,
+        # this also means: do not use action_loss_array.mean()
+        nupdate = self.nepoch * self.nminibatch
+        action_loss = action_loss_sum / nupdate
+        value_loss = value_loss_sum / nupdate
+        action_distrib_entropy = action_distrib_entropy_sum / nupdate
 
         return value_loss, action_loss, action_distrib_entropy
 

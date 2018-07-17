@@ -5,7 +5,8 @@
 * current_obs vs obs?
 * random seed does not control gym?
 * continue from where last ep end, instead of reset during rollout?
-* why set return[-1]=next_value
+* why set return[-1]=next_value?
+  why not set the last return to be (0 if done, else next_value)
 ```py
 def compute_returns(self, next_value, use_gae, gamma, tau):
     ...
