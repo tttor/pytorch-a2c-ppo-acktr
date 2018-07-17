@@ -101,19 +101,27 @@ def main():
             if mode=='ori':
                 rollouts.insert(observ, state, action, action_log_prob, pred_state_value, reward, mask)
             elif mode=='tor':
-                rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ)
+                rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
             else:
                 raise NotImplementedError
 
+        # Prepare for update
+        if mode=='ori':
+            with torch.no_grad():
+                pred_next_state_value = actor_critic_net.get_value(rollouts.observations[-1],
+                                                                    rollouts.states[-1],
+                                                                    rollouts.masks[-1]).detach()
+                pred_next_state_value = pred_next_state_value
+            rollouts.compute_returns(pred_next_state_value, gamma=gamma, use_gae=False, tau=None)
+        elif mode=='tor':
+            with torch.no_grad():
+                pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
+            rollouts.compute_returns(pred_next_state_value, gamma)
+        else:
+            raise NotImplementedError
+        exit()
+
         # Update
-        with torch.no_grad():
-            next_value = actor_critic_net.get_value(rollouts.observations[-1],
-                                                    rollouts.states[-1],
-                                                    rollouts.masks[-1])
-            next_value = next_value.detach()
-
-        rollouts.compute_returns(next_value, gamma=gamma, use_gae=False, tau=None)
-
         value_loss, action_loss, dist_entropy = agent.update(rollouts)
         rollouts.after_update()
 

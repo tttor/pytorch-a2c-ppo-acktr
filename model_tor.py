@@ -25,9 +25,9 @@ class ActorCriticNetwork(nn.Module):
 
         return action, action_log_prob, state_value
 
-    def get_value(self, observ, state, mask):
-        value, _ = self._forward(observ)
-        return value
+    def predict_state_value(self, observ):
+        state_value, _ = self._forward(observ)
+        return state_value
 
     def evaluate_actions(self, observ, state, mask, action):
         value, meta_action = self._forward(observ)

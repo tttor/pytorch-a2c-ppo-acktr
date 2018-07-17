@@ -6,6 +6,16 @@
 * current_obs vs obs?
 * random seed does not control gym?
 * continue from where last ep end, instead of reset during rollout?
+* why set return[-1]=next_value
+```py
+def compute_returns(self, next_value, use_gae, gamma, tau):
+    ...
+    else:
+        self.returns[-1] = next_value
+        for step in reversed(range(self.rewards.size(0))):
+            self.returns[step] = self.returns[step + 1] * \
+                gamma * self.masks[step + 1] + self.rewards[step]
+```
 
 * what does this do? from openai-baselines:
   `envs = VecNormalize(envs, gamma=args.gamma)`
