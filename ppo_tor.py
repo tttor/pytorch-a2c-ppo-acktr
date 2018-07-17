@@ -52,5 +52,3 @@ class VanillaPPO():
         action_distrib_entropy = action_distrib_entropy_sum / nupdate
 
         return value_loss, action_loss, action_distrib_entropy
-
-
