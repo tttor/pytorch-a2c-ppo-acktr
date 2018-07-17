@@ -22,5 +22,5 @@ class MeanBiasNetwork(nn.Module):
 
     def forward(self, x):
         assert x.dim()==2
-        bias = self._param.t().view(1, -1) # the size -1 is inferred from other dimensions
+        bias = self._param.t().view(1, -1)
         return x + bias
