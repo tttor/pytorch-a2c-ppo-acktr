@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as fn
 
 class VanillaPPO():
-    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, lr, eps, nepoch, nminibatch):
+    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, lr, nepoch, nminibatch, eps):
         self.actor_critic_net = actor_critic_net
         self.clip_eps = clip_eps
         self.nepoch = nepoch

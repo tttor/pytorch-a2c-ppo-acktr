@@ -74,8 +74,8 @@ def main():
                                                 actor_output_dim=action_dim,
                                                 critic_output_dim=1)
         rollouts = ExperienceBuffer(nstep, nprocess, observ_dim, action_dim)
-        agent = algo.VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                                lr, eps, ppo_nepoch, ppo_nminibatch)
+        agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
+                            ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
     else:
         raise NotImplementedError
 
