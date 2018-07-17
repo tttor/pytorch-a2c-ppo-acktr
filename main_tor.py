@@ -124,7 +124,6 @@ def main():
                 pred_next_state_value = actor_critic_net.get_value(rollouts.observations[-1],
                                                                     rollouts.states[-1],
                                                                     rollouts.masks[-1]).detach()
-                pred_next_state_value = pred_next_state_value
             rollouts.compute_returns(pred_next_state_value, gamma=gamma, use_gae=False, tau=None)
         elif mode=='tor':
             with torch.no_grad():
