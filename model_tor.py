@@ -16,14 +16,14 @@ class ActorCriticNetwork(nn.Module):
         # self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: uncomment me, rm the one in hiddenNet
         self.state_size = critic_output_dim # TODO: make naming more descriptive
 
-    def act(self, observ, states, masks):
-        value, meta_action = self._forward(observ)
+    def act(self, observ):
+        state_value, meta_action = self._forward(observ)
 
         action_distrib = self.actor_output_net(meta_action)
         action = action_distrib.sample()
         action_log_prob = action_distrib.log_prob(action).sum(dim=-1, keepdim=True)
 
-        return value, action, action_log_prob, states
+        return action, action_log_prob, state_value
 
     def get_value(self, observ, state, mask):
         value, _ = self._forward(observ)
