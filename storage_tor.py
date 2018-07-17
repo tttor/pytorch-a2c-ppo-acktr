@@ -40,7 +40,7 @@ class ExperienceBuffer():
         self.masks[0].copy_(self.masks[-1])
 
     def feed_forward_generator(self, _advantages, nminibatch):
-        batch_size = self.nstep_per_update * nprocess
+        batch_size = self.nstep_per_update * self.nprocess
         assert batch_size >= nminibatch
 
         minibatch_size = batch_size // nminibatch
