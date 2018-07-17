@@ -14,9 +14,15 @@ def main():
     plot(x, y, log_dir)
 
 def plot(x, y, log_dir):
+    ytick_offset = 5
+    yticks = np.arange(min(y)-ytick_offset, max(y)+ytick_offset, 10)
+
     fig, ax = plt.subplots()
     plt.plot(x, y, '-')
-
+    plt.yticks(yticks)
+    plt.grid(True)
+    plt.xlabel('#steps')
+    plt.ylabel('return')
     plt.savefig(os.path.join(log_dir,'plot.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
@@ -27,6 +33,7 @@ def load_monitor_data(log_dir):
     data = [] # one episode info per row
     fpaths = [os.path.join(log_dir, fname) for fname in os.listdir(log_dir) if 'monitor.csv' in fname]
     for fpath in fpaths:
+        print(fpath)
         with open(fpath, 'r') as f:
             f.readline()# skip the fist line, eg. #{"t_start": 1531702562.0624273, "env_id": "Reacher-v2"}
             reader = csv.DictReader(f)
