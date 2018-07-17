@@ -29,6 +29,9 @@ def __init__(self, venv, ob=True, ret=True, clipob=10., cliprew=10., gamma=0.99,
   * see: num_updates = int(args.num_frames) // args.num_steps // args.num_processes
 
 ## fact
+* plot return vs nstep, using
+  * smothing: smooth_reward_curve(x, y)
+  * fix_point(x, y, interval)
 * most params are shared between both actor and critic nets
 * NOT use concat_observ
 * use Monitor():

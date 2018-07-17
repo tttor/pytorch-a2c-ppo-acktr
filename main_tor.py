@@ -12,13 +12,15 @@ from envs import make_env
 from model import Policy
 from model_tor import ActorCriticNetwork
 from storage import RolloutStorage
+from storage_tor import ExperienceBuffer
 
 def main():
-    if len(sys.argv)!=3:
+    if len(sys.argv)!=4:
         print('Wrong argv!')
         return
     nupdate = int(sys.argv[1])
     net_id = sys.argv[2]
+    rollout_id = sys.argv[3]
 
     # Init
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
@@ -35,6 +37,7 @@ def main():
     assert nprocess==1
     assert nstack==1
     # assert not using cuda!
+    # assert not using recurrent net!
 
     envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
@@ -56,8 +59,15 @@ def main():
     else:
         raise NotImplementedError
 
-    rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
-                              envs.action_space, actor_critic_net.state_size)
+    if rollout_id=='oriroll':
+        rollouts = RolloutStorage(nstep, nprocess, envs.observation_space.shape,
+                                  envs.action_space, actor_critic_net.state_size)
+    elif rollout_id=='torroll':
+        rollouts = ExperienceBuffer(nstep, nprocess, observ_dim, action_dim)
+    else:
+        raise NotImplementedError
+
+    exit()
 
     agent = algo.PPO(actor_critic_net, clip_param=0.2, ppo_epoch=10, num_mini_batch=32,
                      value_loss_coef=1.0, entropy_coef=0.0,
@@ -107,7 +117,7 @@ def main():
         rollouts.after_update()
 
         # Log
-        if update_idx % log_interval == 0:
+        if (update_idx % log_interval)==0:
             total_nstep = (update_idx+1) * nprocess * nstep
             logs  = ['update {}/{}'.format(update_idx+1, nupdate)]
             logs += ['nstep {}'.format(total_nstep)]
