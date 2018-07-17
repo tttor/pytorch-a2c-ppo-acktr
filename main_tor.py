@@ -7,7 +7,6 @@ import numpy as np
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
 
-
 from envs import make_env
 
 def main():
