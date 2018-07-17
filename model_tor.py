@@ -34,7 +34,7 @@ class ActorCriticNetwork(nn.Module):
 
         action_distrib = self.actor_output_net(meta_action)
         action_log_prob = action_distrib.log_prob(action).sum(dim=-1, keepdim=True)
-        action_distrib_entropy = action_distrib.entropy().mean()
+        action_distrib_entropy = action_distrib.entropy().sum(dim=-1, keepdim=False).mean()
 
         return value, action_log_prob, action_distrib_entropy
 
