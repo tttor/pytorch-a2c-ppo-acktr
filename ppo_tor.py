@@ -2,13 +2,20 @@ import torch
 import torch.nn.functional as fn
 
 class VanillaPPO():
-    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, lr, nepoch, nminibatch, eps):
+    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, optim_id, lr, nepoch, nminibatch, eps):
         self.actor_critic_net = actor_critic_net
         self.clip_eps = clip_eps
         self.nepoch = nepoch
         self.nminibatch = nminibatch
         self.max_grad_norm = max_grad_norm
-        self.optim = torch.optim.Adam(actor_critic_net.parameters(), lr=lr, eps=eps)
+        if optim_id=='adam':
+            self.optim = torch.optim.Adam(actor_critic_net.parameters(), lr=lr, eps=eps)
+        elif optim_id=='rmsprop':
+            self.optim = torch.optim.RMSprop(actor_critic_net.parameters(), lr=lr, eps=eps)
+        elif optim_id=='sgd':
+            self.optim = torch.optim.SGD(actor_critic_net.parameters(), lr=lr)
+        else:
+            raise NotImplementedError
 
     def update(self, rollouts, eps=1e-5):
         # Compute advantages: $A(s_t, a_t) = Q(s_t, a_t) - V(s_t, a_t)$

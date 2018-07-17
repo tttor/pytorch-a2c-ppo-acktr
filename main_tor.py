@@ -10,11 +10,12 @@ from baselines.common.vec_env.vec_normalize import VecNormalize
 from envs import make_env
 
 def main():
-    if len(sys.argv)!=3:
+    if len(sys.argv)!=4:
         print('Wrong argv!')
         return
     nupdate = int(sys.argv[1])
     mode = sys.argv[2]
+    optim_id = sys.argv[3]
 
     # Init
     xprmt_dir = '/home/tor/xprmt/ikostrikov2'
@@ -37,10 +38,11 @@ def main():
     ppo_value_loss_coef = 1.0
     ppo_entropy_coef = 0.0
     ppo_clip_eps = 0.2
+    ppo_max_grad_norm = 0.5
+    ppo_optim_id = optim_id
+    ppo_lr = 3e-4
     ppo_nepoch = 10
     ppo_nminibatch = 32
-    ppo_lr = 3e-4
-    ppo_max_grad_norm = 0.5
 
     envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
             for i in range(nprocess)]
@@ -75,7 +77,7 @@ def main():
                                                 critic_output_dim=1)
         rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
         agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                            ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
+                            ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
     else:
         raise NotImplementedError
 
