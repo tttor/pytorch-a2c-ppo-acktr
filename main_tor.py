@@ -26,6 +26,7 @@ def main():
     eps = 1e-5
     seed = 123
     log_interval = 1
+    use_gae=False; tau=None
     torch.manual_seed(seed)
     torch.set_num_threads(4)
     assert nprocess==1
@@ -124,7 +125,7 @@ def main():
                 pred_next_state_value = actor_critic_net.get_value(rollouts.observations[-1],
                                                                     rollouts.states[-1],
                                                                     rollouts.masks[-1]).detach()
-            rollouts.compute_returns(pred_next_state_value, gamma=gamma, use_gae=False, tau=None)
+            rollouts.compute_returns(pred_next_state_value, use_gae, gamma, tau)
         elif mode=='tor':
             with torch.no_grad():
                 pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
