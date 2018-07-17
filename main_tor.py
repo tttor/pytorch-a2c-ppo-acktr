@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
+import os
 import sys
+import socket
+import datetime
 
 import torch
 import numpy as np
 
+from baselines import logger
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
 
@@ -18,7 +22,6 @@ def main():
     optim_id = sys.argv[3]
 
     # Init
-    xprmt_dir = '/home/tor/xprmt/ikostrikov2'
     env_id = 'Reacher-v2'
     nprocess = 1
     nstack = 1
@@ -28,6 +31,8 @@ def main():
     seed = 123
     log_interval = 1
     use_gae=False; tau=None
+    log_dir = os.path.join('/home/tor/xprmt/ikostrikov2', make_stamp('ppo_'+env_id))
+    logger.configure(dir=log_dir)
     torch.manual_seed(seed)
     torch.set_num_threads(4)
     assert nprocess==1
@@ -44,7 +49,7 @@ def main():
     ppo_nepoch = 10
     ppo_nminibatch = 32
 
-    envs = [make_env(env_id, seed=seed, rank=i, log_dir=xprmt_dir, add_timestep=False)
+    envs = [make_env(env_id, seed=seed, rank=i, log_dir=log_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
@@ -148,6 +153,12 @@ def main():
             logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
             logs += ['nstep_so_far {}'.format(nstep_so_far)]
             print(' | '.join(logs))
+
+def make_stamp(tag):
+    hostname = socket.gethostname(); hostname = hostname.split('.')[0]
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    stamp = '_'.join([tag, hostname, timestamp])
+    return stamp
 
 if __name__ == '__main__':
     main()
