@@ -31,7 +31,8 @@ def main():
     seed = 123
     log_interval = 1
     use_gae=False; tau=None
-    log_dir = os.path.join('/home/tor/xprmt/ikostrikov2', make_stamp('ppo_'+env_id))
+    tag = '_'.join(['ppo', env_id, optim_id])
+    log_dir = os.path.join('/home/tor/xprmt/ikostrikov2', make_stamp(tag))
     logger.configure(dir=log_dir)
     torch.manual_seed(seed)
     torch.set_num_threads(4)
