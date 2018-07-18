@@ -138,13 +138,14 @@ def main():
             raise NotImplementedError
 
         # Update
-        value_loss, action_loss, dist_entropy = agent.update(rollouts)
+        loss, value_loss, action_loss, dist_entropy = agent.update(rollouts)
         rollouts.after_update()
 
         # Log
         if (update_idx % log_interval)==0:
             nstep_so_far = (update_idx+1) * nprocess * nstep_per_update
             logs  = ['update {}/{}'.format(update_idx+1, nupdate)]
+            logs += ['loss {:.5f}'.format(loss)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
             logs += ['value_loss {:.5f}'.format(value_loss)]
             logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
