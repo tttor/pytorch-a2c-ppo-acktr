@@ -32,7 +32,7 @@ def main():
     log_interval = 1
     use_gae=False; tau=None
     tag = '_'.join(['ppo', env_id, optim_id])
-    log_dir = os.path.join('/home/tor/xprmt/ikostrikov2', make_stamp(tag))
+    log_dir = os.path.join('/home/tor/xprmt/ikostrikov3', make_stamp(tag))
     logger.configure(dir=log_dir)
     torch.manual_seed(seed)
     torch.set_num_threads(4)
@@ -154,7 +154,7 @@ def main():
             logs += ['value_loss {:.5f}'.format(value_loss)]
             logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
             logs += ['nstep_so_far {}'.format(nstep_so_far)]
-            print(' | '.join(logs))
+            logger.log(' | '.join(logs))
 
 def make_stamp(tag):
     hostname = socket.gethostname(); hostname = hostname.split('.')[0]
