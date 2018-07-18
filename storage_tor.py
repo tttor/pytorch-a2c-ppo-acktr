@@ -20,12 +20,13 @@ class ExperienceBuffer():
         self.action_dim = action_dim
 
     def insert(self, action, action_log_prob, state_value, reward, next_observ, next_mask):
-        self.actions[self.step_idx].copy_(action)
-        self.action_log_probs[self.step_idx].copy_(action_log_prob)
-        self.pred_state_values[self.step_idx].copy_(state_value)
-        self.rewards[self.step_idx].copy_(reward)
-        self.observations[self.step_idx+1].copy_(next_observ)
-        self.masks[self.step_idx+1].copy_(next_mask)
+        idx = self.step_idx
+        self.actions[idx].copy_(action)
+        self.action_log_probs[idx].copy_(action_log_prob)
+        self.pred_state_values[idx].copy_(state_value)
+        self.rewards[idx].copy_(reward)
+        self.observations[idx+1].copy_(next_observ)
+        self.masks[idx+1].copy_(next_mask)
 
         self.step_idx += 1
         self.step_idx %= self.nstep_per_update
