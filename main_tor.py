@@ -66,7 +66,7 @@ def main():
         import algo
 
         actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
-                                    recurrent_policy=False)
+                                  recurrent_policy=False)
         rollouts = RolloutStorage(nstep_per_update, nprocess, envs.observation_space.shape,
                                   envs.action_space, actor_critic_net.state_size)
         agent = algo.PPO(actor_critic_net, ppo_clip_eps,
@@ -79,11 +79,12 @@ def main():
         from ppo_tor import VanillaPPO
 
         actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
-                                                actor_output_dim=action_dim,
-                                                critic_output_dim=1)
+                                              hidden_dim=64,
+                                              actor_output_dim=action_dim,
+                                              critic_output_dim=1)
         rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
         agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                            ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
+                           ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
     else:
         raise NotImplementedError
 

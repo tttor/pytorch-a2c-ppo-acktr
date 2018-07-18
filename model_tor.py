@@ -5,10 +5,9 @@ from distributions_tor import GaussianDistributionNetwork
 from utils_tor import init_param_openaibaselines
 
 class ActorCriticNetwork(nn.Module):
-    def __init__(self, input_dim, actor_output_dim, critic_output_dim):
+    def __init__(self, input_dim, hidden_dim, actor_output_dim, critic_output_dim):
         super(ActorCriticNetwork, self).__init__()
 
-        hidden_dim = 64
         self.hidden_net = ActorCriticHiddenNetwork(input_dim, hidden_dim, critic_output_dim)
 
         # Output networks
