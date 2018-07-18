@@ -1,6 +1,7 @@
 # study-ppo
 
 ## fact
+* the return modulator in the loss, psi, is set to the advantage, A = Q - V
 * filter both reward and observ using VecNormalize()
 * do clip the gradient
 ```
@@ -51,6 +52,10 @@ for sample in data_generator:
 ```
 
 ## question: answered
+* why act() returns pred_state_value, in addition to act and act_log_prob:
+  `action, action_log_prob, pred_state_value = actor_critic_net.act(observ)`
+  * it is used to compute advantage:
+    `pred_advs = rollouts.returns[:-1] - rollouts.pred_state_values[:-1]`
 * states? cf observation
   * seems only for atari, or image inputs
 * max_grad_norm?

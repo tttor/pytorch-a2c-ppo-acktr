@@ -17,15 +17,15 @@ class VanillaPPO():
         else:
             raise NotImplementedError
 
-    def update(self, rollouts, eps=1e-5):
+    def update(self, experience, eps=1e-5):
         # Compute advantages: $A(s_t, a_t) = Q(s_t, a_t) - V(s_t, a_t)$
-        pred_advs = rollouts.returns[:-1] - rollouts.pred_state_values[:-1]
+        pred_advs = experience.returns[:-1] - experience.pred_state_values[:-1]
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
         # Update in multiple epoches
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0
         for epoch_idx in range(self.nepoch):
-            sample_gen = rollouts.feed_forward_generator(pred_advs, self.nminibatch)
+            sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
 
             mb_idx = 0
             for samples in sample_gen:
