@@ -49,7 +49,7 @@ class VanillaPPO():
                 action_distrib_entropy_sum += action_distrib_entropy.item()
 
         # Summarize losses
-        # Note: nupdate below may not be equal to loop iteration above since
+        # Note: nupdate below may not be equal to #iteration in the loop above since
         # in sampler generator, we set drop_last=False,
         # this also implies: do not use mean() fn, eg, action_loss_array.mean()
         nupdate = self.nepoch * self.nminibatch
