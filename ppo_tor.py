@@ -51,8 +51,8 @@ class VanillaPPO():
                     return loss
 
                 # Step the optim
-                # loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
                 loss = self.optim.step(closure)
+                # loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
 
                 loss_sum += loss
                 # action_loss_sum += action_loss
