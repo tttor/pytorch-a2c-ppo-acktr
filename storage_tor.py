@@ -7,7 +7,7 @@ class ExperienceBuffer():
         self.action_log_probs = torch.zeros(nstep_per_update, nprocess, 1)
         self.actions = torch.zeros(nstep_per_update, nprocess, action_dim)
 
-        # Below, +1 to store next observ, returns, pred_state_values
+        # Below +1 is to store next observ, next returns, next pred_state_values
         self.observations = torch.zeros(nstep_per_update + 1, nprocess, observ_dim)
         self.returns = torch.zeros(nstep_per_update + 1, nprocess, 1)
         self.value_preds = torch.zeros(nstep_per_update + 1, nprocess, 1)
