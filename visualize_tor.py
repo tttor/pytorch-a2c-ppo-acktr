@@ -35,8 +35,8 @@ def plot_optim():
     plt.grid(True)
     plt.yticks(yticks)
     plt.xlabel('#steps')
-    plt.ylabel('return')
-    plt.title('PPO on Reacher-v2')
+    plt.ylabel('return (undiscounted)')
+    plt.title('PPO on Reacher-v2 (maxReward= -3.75)')
     plt.savefig(os.path.join(log_dir,'plot.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
