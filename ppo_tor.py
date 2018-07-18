@@ -27,7 +27,6 @@ class VanillaPPO():
         for epoch_idx in range(self.nepoch):
             sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
 
-            mb_idx = 0
             for samples in sample_gen:
                 _observs, _actions, _action_log_probs, _returns, _pred_advs, _masks = samples
                 pred_state_values, action_log_probs, action_distrib_entropy = self.actor_critic_net.evaluate_actions(_observs, _actions)
