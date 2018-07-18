@@ -19,7 +19,7 @@ class VanillaPPO():
 
     def update(self, rollouts, eps=1e-5):
         # Compute advantages: $A(s_t, a_t) = Q(s_t, a_t) - V(s_t, a_t)$
-        pred_advs = rollouts.returns[:-1] - rollouts.value_preds[:-1]
+        pred_advs = rollouts.returns[:-1] - rollouts.pred_state_values[:-1]
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
         # Update in multiple epoches

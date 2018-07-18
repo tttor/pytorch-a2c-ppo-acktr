@@ -10,7 +10,7 @@ class ExperienceBuffer():
         # Below +1 is to store next observ, next returns, next pred_state_values
         self.observations = torch.zeros(nstep_per_update + 1, nprocess, observ_dim)
         self.returns = torch.zeros(nstep_per_update + 1, nprocess, 1)
-        self.value_preds = torch.zeros(nstep_per_update + 1, nprocess, 1)
+        self.pred_state_values = torch.zeros(nstep_per_update + 1, nprocess, 1)
         self.masks = torch.ones(nstep_per_update + 1, nprocess, 1)
 
         self.step_idx = 0
@@ -22,7 +22,7 @@ class ExperienceBuffer():
     def insert(self, action, action_log_prob, state_value, reward, next_observ, next_mask):
         self.actions[self.step_idx].copy_(action)
         self.action_log_probs[self.step_idx].copy_(action_log_prob)
-        self.value_preds[self.step_idx].copy_(state_value)
+        self.pred_state_values[self.step_idx].copy_(state_value)
         self.rewards[self.step_idx].copy_(reward)
         self.observations[self.step_idx+1].copy_(next_observ)
         self.masks[self.step_idx+1].copy_(next_mask)
