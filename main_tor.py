@@ -106,9 +106,7 @@ def main():
                 else:
                     raise NotImplementedError
 
-            # print(action)
-            # print(action_log_prob)
-            # print(pred_state_value)
+            # print(action); print(action_log_prob); print(pred_state_value)
             # exit()
 
             # Step
