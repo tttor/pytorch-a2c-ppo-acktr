@@ -8,9 +8,10 @@ class ActorCriticNetwork(nn.Module):
     def __init__(self, input_dim, hidden_dim, actor_output_dim, critic_output_dim):
         super(ActorCriticNetwork, self).__init__()
 
-        self.hidden_net = ActorCriticHiddenNetwork(input_dim, hidden_dim, critic_output_dim)
+        # Initialize in these order to maintain the similarity on random values compared to the original version
+        self.hidden_net = ActorCriticHiddenNetwork(input_dim, hidden_dim)
+        self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: move to ActorCriticNet()
         self.actor_output_net = GaussianDistributionNetwork(hidden_dim, actor_output_dim)
-        # self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: uncomment me, rm the one in hiddenNet
 
     def act(self, observ):
         state_value, meta_action = self._forward(observ)
@@ -40,10 +41,10 @@ class ActorCriticNetwork(nn.Module):
     def _forward(self, observ):
         hidden_actor = self.hidden_net.actor_hidden_net(observ)
         hidden_critic = self.hidden_net.critic_hidden_net(observ)
-        return self.hidden_net.critic_output_net(hidden_critic), hidden_actor
+        return self.critic_output_net(hidden_critic), hidden_actor
 
 class ActorCriticHiddenNetwork(nn.Module):
-    def __init__(self, input_dim, hidden_dim, critic_output_dim):
+    def __init__(self, input_dim, hidden_dim):
         super(ActorCriticHiddenNetwork, self).__init__()
 
         self.actor_hidden_net = nn.Sequential(
@@ -59,8 +60,6 @@ class ActorCriticHiddenNetwork(nn.Module):
             init_param_openaibaselines(nn.Linear(hidden_dim, hidden_dim)),
             nn.Tanh()
         )
-
-        self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: move to ActorCriticNet()
 
     def forward(self, observ):
         raise NotImplementedError
