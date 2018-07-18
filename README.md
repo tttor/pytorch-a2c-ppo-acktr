@@ -28,19 +28,8 @@ epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart
 ```
 
 ## question
-* why set return[-1]=next_value?
-  why not set the last return to be (0 if done, else copy from the last value), like:
-  `vpred_t = np.append(vpred_t, 0.0 if path["terminated"] else vpred_t[-1])` at
-  https://github.com/openai/baselines/blob/f2729693253c0ef4d4086231d36e0a4307ec1cb3/baselines/acktr/acktr_cont.py#L102
-```py
-def compute_returns(self, next_value, use_gae, gamma, tau):
-    ...
-    else:
-        self.returns[-1] = next_value
-        for step in reversed(range(self.rewards.size(0))):
-            self.returns[step] = self.returns[step + 1] * \
-                gamma * self.masks[step + 1] + self.rewards[step]
-```
+* why squeeze at dim=1:
+  `observ, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())`
 * why this becomes old_action_log_probs?
   there is not update yet, isnt?
 ```
@@ -54,6 +43,23 @@ for sample in data_generator:
 ```
 
 ## question: answered
+* why set return[-1]=next_value?
+  why not set the last return to be (0 if done, else copy from the last value), like:
+  `vpred_t = np.append(vpred_t, 0.0 if path["terminated"] else vpred_t[-1])` at
+  /home/tor/ws/baselines/baselines/acktr/acktr_cont.py
+  * seems to be more stable if we also use predicted value,
+    rather than setting to 0 if terminal(which is true because it is absorbing states)
+    or setting to prev value
+  * this also related to the design of rollouts that is non stop (contagious) over all episodes
+```py
+def compute_returns(self, next_value, use_gae, gamma, tau):
+    ...
+    else:
+        self.returns[-1] = next_value
+        for step in reversed(range(self.rewards.size(0))):
+            self.returns[step] = self.returns[step + 1] * \
+                gamma * self.masks[step + 1] + self.rewards[step]
+```
 * why act() returns pred_state_value, in addition to act and act_log_prob:
   `action, action_log_prob, pred_state_value = actor_critic_net.act(observ)`
   * it is used to compute advantage:

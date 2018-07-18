@@ -32,7 +32,7 @@ class ExperienceBuffer():
         self.step_idx %= self.nstep_per_update
 
     def compute_returns(self, pred_next_state_value, gamma):
-        self.returns[-1] = pred_next_state_value # TODO: why set this?
+        self.returns[-1] = pred_next_state_value # needs to use pred value as this rollout storage is non stop (contagious) over all episodes
         for i in reversed(range(self.rewards.shape[0])): # i: reversed step_idx
             self.returns[i] = self.rewards[i] + (gamma * self.returns[i+1] * self.masks[i+1])
 
