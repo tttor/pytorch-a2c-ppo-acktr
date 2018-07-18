@@ -25,8 +25,8 @@ class VanillaPPO():
         # Update nepoch times
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0
         for epoch_idx in range(self.nepoch):
-            sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
 
+            sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
             for samples in sample_gen:
                 _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
                 action_log_probs, action_distrib_entropy, pred_state_values = self.actor_critic_net.evaluate_actions(_observs, _actions)
