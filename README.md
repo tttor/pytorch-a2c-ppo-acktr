@@ -3,11 +3,8 @@
 ## fact
 * the return modulator in the loss, psi, is set to the advantage, A = Q - V
 * filter both reward and observ using VecNormalize()
+* most network params are shared between both actor and critic nets
 * do clip the gradient
-```
-nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
-                         self.max_grad_norm)
-```
 * use state value, NOT action-state value
 * reset is NOT called during rollout;
   * this is NOT similar with that of openai-baselines
@@ -17,10 +14,7 @@ nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
 * plot return vs nstep, using
   * smothing: smooth_reward_curve(x, y)
   * fix_point(x, y, interval)
-* most params are shared between both actor and critic nets
-* use Monitor():
-  /home/tor/ws/poacp/xternal/baselines/baselines/bench/monitor.py
-  * print if done==True
+* use Monitor(): baselines/baselines/bench/monitor.py
 ```py
 eprew = sum(self.rewards)
 eplen = len(self.rewards)
