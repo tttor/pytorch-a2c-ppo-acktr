@@ -36,7 +36,7 @@ class VanillaPPO():
                 surr2 = torch.clamp(ratio, (1.0 - self.clip_eps), (1.0 + self.clip_eps)) * _pred_advs
 
                 action_loss = - torch.min(surr1, surr2).mean()
-                value_loss = fn.mse_loss(_returns, pred_state_values) # other args: size_average=True, reduce=True
+                value_loss = fn.mse_loss(pred_state_values, _returns) # other args: size_average=True, reduce=True
                 loss = action_loss + value_loss
 
                 self.optim.zero_grad()
