@@ -105,7 +105,6 @@ def main():
                     action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
                 else:
                     raise NotImplementedError
-
             # print(action); print(action_log_prob); print(pred_state_value)
             # exit()
 
