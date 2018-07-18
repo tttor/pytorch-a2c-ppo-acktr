@@ -47,7 +47,7 @@ class VanillaPPO():
                     torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
 
                     # return (loss, action_loss.item(), value_loss.item(), action_distrib_entropy.item())
-                    assert loss is not None
+                    assert not(torch.isnan(loss))
                     return loss
 
                 # Step the optim
