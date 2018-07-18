@@ -9,11 +9,8 @@ class ActorCriticNetwork(nn.Module):
         super(ActorCriticNetwork, self).__init__()
 
         self.hidden_net = ActorCriticHiddenNetwork(input_dim, hidden_dim, critic_output_dim)
-
-        # Output networks
         self.actor_output_net = GaussianDistributionNetwork(hidden_dim, actor_output_dim)
         # self.critic_output_net = init_param_openaibaselines(nn.Linear(hidden_dim, critic_output_dim)) # TODO: uncomment me, rm the one in hiddenNet
-        self.state_size = critic_output_dim # TODO: make naming more descriptive
 
     def act(self, observ):
         state_value, meta_action = self._forward(observ)
