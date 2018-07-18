@@ -22,13 +22,13 @@ class VanillaPPO():
         pred_advs = experience.returns[:-1] - experience.pred_state_values[:-1]
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
-        # Update in multiple epoches
+        # Update nepoch times
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0
         for epoch_idx in range(self.nepoch):
             sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
 
             for samples in sample_gen:
-                _observs, _actions, _action_log_probs, _returns, _pred_advs, _masks = samples
+                _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
                 pred_state_values, action_log_probs, action_distrib_entropy = self.actor_critic_net.evaluate_actions(_observs, _actions)
 
                 ratio = torch.exp(action_log_probs - _action_log_probs)

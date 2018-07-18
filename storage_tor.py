@@ -50,10 +50,9 @@ class ExperienceBuffer():
         for idxs in sampler:
             observs = self.observations[:-1].view(-1, self.observ_dim)[idxs]
             returns = self.returns[:-1].view(-1, 1)[idxs]
-            masks = self.masks[:-1].view(-1, 1)[idxs]
 
             actions = self.actions.view(-1, self.action_dim)[idxs]
             action_log_probs = self.action_log_probs.view(-1, 1)[idxs]
             advantages = _advantages.view(-1, 1)[idxs]
 
-            yield observs, actions, action_log_probs, returns, advantages, masks
+            yield observs, actions, action_log_probs, returns, advantages
