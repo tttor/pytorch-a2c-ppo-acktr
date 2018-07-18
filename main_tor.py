@@ -24,7 +24,6 @@ def main():
     # Init
     env_id = 'Reacher-v2'
     nprocess = 1
-    nstack = 1
     nstep_per_update = 2500
     gamma = 0.99
     eps = 1e-5
@@ -37,7 +36,6 @@ def main():
     torch.manual_seed(seed)
     torch.set_num_threads(4)
     assert nprocess==1
-    assert nstack==1
     # assert not using cuda!
     # assert not using recurrent net!
 
