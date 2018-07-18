@@ -1,10 +1,32 @@
 # study-ppo
 
+## fact
+* filter both reward and observ using VecNormalize()
+* do clip the gradient
+```
+nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
+                         self.max_grad_norm)
+```
+* use state value, NOT action-state value
+* reset is NOT called during rollout;
+  * this is NOT similar with that of openai-baselines
+  * in /home/tor/ws/baselines/baselines/acktr/acktr_cont_kfac.py
+    * reset is at every beginning of run_one_episode()
+* NOT use concat_observ
+* plot return vs nstep, using
+  * smothing: smooth_reward_curve(x, y)
+  * fix_point(x, y, interval)
+* most params are shared between both actor and critic nets
+* use Monitor():
+  /home/tor/ws/poacp/xternal/baselines/baselines/bench/monitor.py
+  * print if done==True
+```py
+eprew = sum(self.rewards)
+eplen = len(self.rewards)
+epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart, 6)}
+```
+
 ## question
-* states? cf observation
-* current_obs vs obs?
-* random seed does not control gym?
-* continue from where last ep end, instead of reset during rollout?
 * why set return[-1]=next_value?
   why not set the last return to be (0 if done, else next_value)
 ```py
@@ -28,7 +50,9 @@ for sample in data_generator:
             adv_targ = sample
 ```
 
-## answered question
+## question: answered
+* states? cf observation
+  * seems only for atari, or image inputs
 * max_grad_norm?
   * for clipping the grad, before optim.step()
 * why adv computed this way?
@@ -61,31 +85,14 @@ def __init__(self, venv, ob=True, ret=True, clipob=10., cliprew=10., gamma=0.99,
   * nstep per update
   * see: num_updates = int(args.num_frames) // args.num_steps // args.num_processes
 
-## fact
-* do clip the gradient
-```
-nn.utils.clip_grad_norm_(self.actor_critic.parameters(),
-                         self.max_grad_norm)
-```
-* use state value, NOT action-state value
-* plot return vs nstep, using
-  * smothing: smooth_reward_curve(x, y)
-  * fix_point(x, y, interval)
-* most params are shared between both actor and critic nets
-* NOT use concat_observ
-* use Monitor():
-  /home/tor/ws/poacp/xternal/baselines/baselines/bench/monitor.py
-  * print if done==True
-```py
-eprew = sum(self.rewards)
-eplen = len(self.rewards)
-epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart, 6)}
-```
-* reset is not called during rollout;
-  * this is NOT similar with that of openai-baselines
-  * in /home/tor/ws/baselines/baselines/acktr/acktr_cont_kfac.py
-    * reset is at every beginning of run_one_episode()
-* filter both reward and observ using VecNormalize()
+## todo
+* reset per episode
+* using entropy info of action distrib
+* nprocess > 1
+* use GAE
+* recurrent net
+* gym robotic env
+* cuda compatibility
 
 ## setup
 * visdom
