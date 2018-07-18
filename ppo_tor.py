@@ -28,25 +28,30 @@ class VanillaPPO():
 
             sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
             for samples in sample_gen:
-                _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
-                action_log_probs, action_distrib_entropy, pred_state_values = self.actor_critic_net.evaluate_actions(_observs, _actions)
+                def closure():
+                    _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
+                    action_log_probs, action_distrib_entropy, pred_state_values = self.actor_critic_net.evaluate_actions(_observs, _actions)
 
-                ratio = torch.exp(action_log_probs - _action_log_probs) # $\pi_{\theta}(a_t, s_t) / \pi{\theta_{old}}(a_t, s_t)$
-                surr1 = ratio * _pred_advs
-                surr2 = torch.clamp(ratio, (1.0 - self.clip_eps), (1.0 + self.clip_eps)) * _pred_advs
+                    ratio = torch.exp(action_log_probs - _action_log_probs) # $\pi_{\theta}(a_t, s_t) / \pi{\theta_{old}}(a_t, s_t)$
+                    surr1 = ratio * _pred_advs
+                    surr2 = torch.clamp(ratio, (1.0 - self.clip_eps), (1.0 + self.clip_eps)) * _pred_advs
 
-                action_loss = - torch.min(surr1, surr2).mean()
-                value_loss = fn.mse_loss(pred_state_values, _returns) # other args: size_average=True, reduce=True
-                loss = action_loss + value_loss
+                    action_loss = - torch.min(surr1, surr2).mean()
+                    value_loss = fn.mse_loss(pred_state_values, _returns) # other args: size_average=True, reduce=True
+                    loss = action_loss + value_loss
 
-                self.optim.zero_grad()
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
-                self.optim.step()
+                    self.optim.zero_grad()
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
 
-                action_loss_sum += action_loss.item()
-                value_loss_sum += value_loss.item()
-                action_distrib_entropy_sum += action_distrib_entropy.item()
+                    return (loss, action_loss.item(), value_loss.item(), action_distrib_entropy.item())
+
+                # Step the optim
+                loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
+
+                action_loss_sum += action_loss
+                value_loss_sum += value_loss
+                action_distrib_entropy_sum += action_distrib_entropy
 
         # Summarize losses
         # Note: nupdate below may not be equal to #iteration in the loop above since
