@@ -29,7 +29,9 @@ epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart
 
 ## question
 * why set return[-1]=next_value?
-  why not set the last return to be (0 if done, else next_value)
+  why not set the last return to be (0 if done, else copy from the last value), like:
+  `vpred_t = np.append(vpred_t, 0.0 if path["terminated"] else vpred_t[-1])` at
+  https://github.com/openai/baselines/blob/f2729693253c0ef4d4086231d36e0a4307ec1cb3/baselines/acktr/acktr_cont.py#L102
 ```py
 def compute_returns(self, next_value, use_gae, gamma, tau):
     ...
