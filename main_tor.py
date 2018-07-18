@@ -92,7 +92,7 @@ def main():
     rollouts.observations[0].copy_(observ)
 
     for update_idx in range(nupdate):
-        # Rollout
+        # Rollout for nstep_per_update steps
         for step_idx in range(nstep_per_update):
             # Sample actions
             with torch.no_grad():
