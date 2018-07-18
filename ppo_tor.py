@@ -33,10 +33,10 @@ class VanillaPPO():
 
                 ratio = torch.exp(action_log_probs - _action_log_probs) # $\pi_{\theta}(a_t, s_t) / \pi{\theta_{old}}(a_t, s_t)$
                 surr1 = ratio * _pred_advs
-                surr2 = torch.clamp(ratio, 1.0 - self.clip_eps, 1.0 + self.clip_eps) * _pred_advs
+                surr2 = torch.clamp(ratio, (1.0 - self.clip_eps), (1.0 + self.clip_eps)) * _pred_advs
 
                 action_loss = - torch.min(surr1, surr2).mean()
-                value_loss = fn.mse_loss(_returns, pred_state_values)
+                value_loss = fn.mse_loss(_returns, pred_state_values) # other args: size_average=True, reduce=True
                 loss = action_loss + value_loss
 
                 self.optim.zero_grad()
@@ -50,8 +50,8 @@ class VanillaPPO():
 
         # Summarize losses
         # Note: nupdate below may not be equal to loop iteration above since
-        # in sampler generator we set drop_last=False,
-        # this also means: do not use action_loss_array.mean()
+        # in sampler generator, we set drop_last=False,
+        # this also implies: do not use mean() fn, eg, action_loss_array.mean()
         nupdate = self.nepoch * self.nminibatch
         action_loss = action_loss_sum / nupdate
         value_loss = value_loss_sum / nupdate
