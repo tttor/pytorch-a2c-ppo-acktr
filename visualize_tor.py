@@ -8,10 +8,37 @@ from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
 
 def main():
-    log_dir = '/home/tor/xprmt/ikostrikov2'
+    plot_optim()
 
-    x, y = load_monitor_data(log_dir)
-    plot(x, y, log_dir)
+    # log_dir = '/home/tor/xprmt/ikostrikov2'
+    # x, y = load_monitor_data(log_dir)
+    # plot(x, y, log_dir)
+
+def plot_optim():
+    log_dir = '/home/tor/xprmt/ikostrikov2/optim-200k-7ad58cf4f169a088fe314eb8a32ec3fc84c19dfa'
+    dir_names = [n for n in os.listdir(log_dir) if '.png' not in n]
+    data = {}
+    for dname in dir_names:
+        data[dname] = load_monitor_data(os.path.join(log_dir, dname))
+
+    fig, ax = plt.subplots()
+    ys = []
+    for k, v in data.items():
+        x, y = v
+        plt.plot(x, y, '-', label=k)
+        ys += y
+
+    ytick_offset = 5
+    yticks = np.arange(min(ys)-ytick_offset, max(ys)+ytick_offset, 10)
+
+    ax.legend(loc='lower right')
+    plt.grid(True)
+    plt.yticks(yticks)
+    plt.xlabel('#steps')
+    plt.ylabel('return')
+    plt.title('PPO on Reacher-v2')
+    plt.savefig(os.path.join(log_dir,'plot.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.close(fig)
 
 def plot(x, y, log_dir):
     ytick_offset = 5
@@ -55,7 +82,7 @@ def load_monitor_data(log_dir):
     x, y = smooth_reward_curve(x, y)
     x, y = fix_point(x, y, interval=100)
 
-    return x, y
+    return (x, y)
 
 def smooth_reward_curve(x, y):
     # Copy from:
