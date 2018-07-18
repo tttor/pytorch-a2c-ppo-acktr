@@ -100,9 +100,9 @@ def __init__(self, venv, ob=True, ret=True, clipob=10., cliprew=10., gamma=0.99,
 
 ## todo
 * reset per episode
-* using entropy info of action distrib
+* entropy info of action distrib
 * nprocess > 1
-* use GAE
+* GAE
 * recurrent net
 * gym robotic env
 * cuda compatibility
