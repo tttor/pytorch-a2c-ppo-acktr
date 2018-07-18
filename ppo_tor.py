@@ -29,9 +29,9 @@ class VanillaPPO():
 
             for samples in sample_gen:
                 _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
-                pred_state_values, action_log_probs, action_distrib_entropy = self.actor_critic_net.evaluate_actions(_observs, _actions)
+                action_log_probs, action_distrib_entropy, pred_state_values = self.actor_critic_net.evaluate_actions(_observs, _actions)
 
-                ratio = torch.exp(action_log_probs - _action_log_probs)
+                ratio = torch.exp(action_log_probs - _action_log_probs) # $\pi_{\theta}(a_t, s_t) / \pi{\theta_{old}}(a_t, s_t)$
                 surr1 = ratio * _pred_advs
                 surr2 = torch.clamp(ratio, 1.0 - self.clip_eps, 1.0 + self.clip_eps) * _pred_advs
 
