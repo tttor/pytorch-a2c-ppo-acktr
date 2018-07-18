@@ -25,7 +25,7 @@ class VanillaPPO():
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
         # Update nepoch times
-        action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0
+        action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0; loss_sum = 0.0
         for epoch_idx in range(self.nepoch):
 
             sample_gen = experience.feed_forward_generator(pred_advs, self.nminibatch)
@@ -46,22 +46,27 @@ class VanillaPPO():
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
 
-                    return (loss, action_loss.item(), value_loss.item(), action_distrib_entropy.item())
+                    # return (loss, action_loss.item(), value_loss.item(), action_distrib_entropy.item())
+                    assert loss is not None
+                    return loss
 
                 # Step the optim
-                loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
+                # loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
+                loss = self.optim.step(closure)
 
-                action_loss_sum += action_loss
-                value_loss_sum += value_loss
-                action_distrib_entropy_sum += action_distrib_entropy
+                loss_sum += loss
+                # action_loss_sum += action_loss
+                # value_loss_sum += value_loss
+                # action_distrib_entropy_sum += action_distrib_entropy
 
         # Summarize losses
         # Note: nupdate below may not be equal to #iteration in the loop above since
         # in sampler generator, we set drop_last=False,
         # this also implies: do not use mean() fn, eg, action_loss_array.mean()
         nupdate = self.nepoch * self.nminibatch
+        loss = loss_sum / nupdate
         action_loss = action_loss_sum / nupdate
         value_loss = value_loss_sum / nupdate
         action_distrib_entropy = action_distrib_entropy_sum / nupdate
 
-        return value_loss, action_loss, action_distrib_entropy
+        return loss, value_loss, action_loss, action_distrib_entropy
