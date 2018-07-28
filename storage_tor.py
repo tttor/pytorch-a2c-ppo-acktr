@@ -2,20 +2,20 @@ import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
 class ExperienceBuffer():
-    def __init__(self, nstep_per_update, nprocess, observ_dim, action_dim):
-        self.rewards = torch.zeros(nstep_per_update, nprocess, 1)
-        self.action_log_probs = torch.zeros(nstep_per_update, nprocess, 1)
-        self.actions = torch.zeros(nstep_per_update, nprocess, action_dim)
+    def __init__(self, n_step_per_update, n_process, observ_dim, action_dim):
+        self.rewards = torch.zeros(n_step_per_update, n_process, 1)
+        self.action_log_probs = torch.zeros(n_step_per_update, n_process, 1)
+        self.actions = torch.zeros(n_step_per_update, n_process, action_dim)
 
         # Below +1 is to store next observ, next returns, next pred_state_values
-        self.observations = torch.zeros(nstep_per_update + 1, nprocess, observ_dim)
-        self.returns = torch.zeros(nstep_per_update + 1, nprocess, 1)
-        self.pred_state_values = torch.zeros(nstep_per_update + 1, nprocess, 1)
-        self.masks = torch.ones(nstep_per_update + 1, nprocess, 1)
+        self.observations = torch.zeros(n_step_per_update + 1, n_process, observ_dim)
+        self.returns = torch.zeros(n_step_per_update + 1, n_process, 1)
+        self.pred_state_values = torch.zeros(n_step_per_update + 1, n_process, 1)
+        self.masks = torch.ones(n_step_per_update + 1, n_process, 1)
 
         self.step_idx = 0
-        self.nstep_per_update = nstep_per_update
-        self.nprocess = nprocess
+        self.n_step_per_update = n_step_per_update
+        self.n_process = n_process
         self.observ_dim = observ_dim
         self.action_dim = action_dim
 
@@ -29,7 +29,7 @@ class ExperienceBuffer():
         self.masks[idx+1].copy_(next_mask)
 
         self.step_idx += 1
-        self.step_idx %= self.nstep_per_update
+        self.step_idx %= self.n_step_per_update
 
     def compute_returns(self, pred_next_state_value, gamma):
         self.returns[-1] = pred_next_state_value # needs to use pred value as this rollout storage is non stop (contagious) over all episodes
@@ -41,7 +41,7 @@ class ExperienceBuffer():
         self.masks[0].copy_(self.masks[-1])
 
     def feed_forward_generator(self, _advantages, n_minibatch):
-        batch_size = self.nstep_per_update * self.nprocess
+        batch_size = self.n_step_per_update * self.n_process
         assert batch_size >= n_minibatch
 
         minibatch_size = batch_size // n_minibatch
