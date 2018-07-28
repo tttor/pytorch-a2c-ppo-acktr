@@ -2,10 +2,10 @@ import torch
 import torch.nn.functional as fn
 
 class VanillaPPO():
-    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, optim_id, lr, nepoch, n_minibatch, eps):
+    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, optim_id, lr, n_epoch, n_minibatch, eps):
         self.actor_critic_net = actor_critic_net
         self.clip_eps = clip_eps
-        self.nepoch = nepoch
+        self.n_epoch = n_epoch
         self.n_minibatch = n_minibatch
         self.max_grad_norm = max_grad_norm
         if optim_id=='adam':
@@ -24,9 +24,9 @@ class VanillaPPO():
         pred_advs = experience.returns[:-1] - experience.pred_state_values[:-1]
         pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
 
-        # Update nepoch times
+        # Update n_epoch times
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0; loss_sum = 0.0
-        for epoch_idx in range(self.nepoch):
+        for epoch_idx in range(self.n_epoch):
 
             sample_gen = experience.feed_forward_generator(pred_advs, self.n_minibatch)
             for samples in sample_gen:
@@ -63,7 +63,7 @@ class VanillaPPO():
         # Note: nupdate below may not be equal to #iteration in the loop above since
         # in sampler generator, we set drop_last=False,
         # this also implies: do not use mean() fn, eg, action_loss_array.mean()
-        nupdate = self.nepoch * self.n_minibatch
+        nupdate = self.n_epoch * self.n_minibatch
         loss = loss_sum / nupdate
         action_loss = action_loss_sum / nupdate
         value_loss = value_loss_sum / nupdate
