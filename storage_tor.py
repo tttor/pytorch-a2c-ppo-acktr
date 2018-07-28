@@ -40,11 +40,11 @@ class ExperienceBuffer():
         self.observations[0].copy_(self.observations[-1])
         self.masks[0].copy_(self.masks[-1])
 
-    def feed_forward_generator(self, _advantages, nminibatch):
+    def feed_forward_generator(self, _advantages, n_minibatch):
         batch_size = self.nstep_per_update * self.nprocess
-        assert batch_size >= nminibatch
+        assert batch_size >= n_minibatch
 
-        minibatch_size = batch_size // nminibatch
+        minibatch_size = batch_size // n_minibatch
         sampler = BatchSampler(SubsetRandomSampler(range(batch_size)), minibatch_size, drop_last=False)
 
         for idxs in sampler:
