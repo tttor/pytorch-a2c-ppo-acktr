@@ -62,7 +62,6 @@ def main():
             with torch.no_grad():
                 action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
             # print(action); print(action_log_prob); print(pred_state_value)
-            # exit()
 
             # Step
             observ, reward, done, info = envs.step(action.squeeze(1).cpu().numpy())
