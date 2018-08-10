@@ -80,7 +80,7 @@ def main():
         experience.compute_returns(pred_next_state_value, gamma)
 
         # Update
-        loss, value_loss, action_loss, dist_entropy = agent.update(experience)
+        loss, value_loss, action_loss, distrib_entropy = agent.update(experience)
         experience.after_update()
 
         # Log
@@ -90,7 +90,7 @@ def main():
             logs += ['loss {:.5f}'.format(loss)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
             logs += ['value_loss {:.5f}'.format(value_loss)]
-            logs += ['dist_entropy {:.5f}'.format(dist_entropy)]
+            logs += ['distrib_entropy {:.5f}'.format(distrib_entropy)]
             logs += ['nstep_so_far {}'.format(nstep_so_far)]
             logger.log(' | '.join(logs))
 
