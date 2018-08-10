@@ -22,7 +22,6 @@ def main():
     nstep_per_update = 2500
     gamma = 0.99
     eps = 1e-5
-    seed = 123
     log_interval = 1
     use_gae=False; tau=None
     tag = '_'.join(['ppo', env_id, args.opt])
@@ -43,7 +42,7 @@ def main():
     ppo_nepoch = 10
     ppo_nminibatch = 32
 
-    envs = [make_env(env_id, seed=seed, rank=i, log_dir=log_dir, add_timestep=False)
+    envs = [make_env(env_id, seed=args.seed, rank=i, log_dir=log_dir, add_timestep=False)
             for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
