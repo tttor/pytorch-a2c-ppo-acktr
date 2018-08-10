@@ -2,16 +2,17 @@ import torch
 import torch.nn.functional as fn
 
 class VanillaPPO():
-    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, optim_id, lr, n_epoch, n_minibatch, eps):
+    def __init__(self, actor_critic_net, clip_eps, max_grad_norm, optim_id, lr, n_epoch, n_minibatch, epsilon):
         self.actor_critic_net = actor_critic_net
         self.clip_eps = clip_eps
         self.n_epoch = n_epoch
         self.n_minibatch = n_minibatch
         self.max_grad_norm = max_grad_norm
+        self.epsilon = epsilon
         if optim_id=='adam':
-            self.optim = torch.optim.Adam(actor_critic_net.parameters(), lr=lr, eps=eps)
+            self.optim = torch.optim.Adam(actor_critic_net.parameters(), lr=lr, eps=epsilon)
         elif optim_id=='rmsprop':
-            self.optim = torch.optim.RMSprop(actor_critic_net.parameters(), lr=lr, eps=eps)
+            self.optim = torch.optim.RMSprop(actor_critic_net.parameters(), lr=lr, eps=epsilon)
         elif optim_id=='sgd':
             self.optim = torch.optim.SGD(actor_critic_net.parameters(), lr=lr)
         elif optim_id=='lbfgs':
@@ -19,10 +20,10 @@ class VanillaPPO():
         else:
             raise NotImplementedError
 
-    def update(self, experience, eps=1e-5):
+    def update(self, experience):
         # Compute advantages: $A(s_t, a_t) = Q(s_t, a_t) - V(s_t, a_t)$
         pred_advs = experience.returns[:-1] - experience.pred_state_values[:-1]
-        pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + eps)
+        pred_advs = (pred_advs - pred_advs.mean()) / (pred_advs.std() + self.epsilon)
 
         # Update n_epoch times
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0; loss_sum = 0.0

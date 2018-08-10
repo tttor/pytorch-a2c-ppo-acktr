@@ -33,13 +33,6 @@ def main():
     # assert not using cuda!
     # assert not using recurrent net!
 
-    ppo_clip_eps = 0.2
-    ppo_max_grad_norm = 0.5
-    ppo_optim_id = args.opt
-    ppo_lr = 3e-4
-    ppo_nepoch = 10
-    ppo_nminibatch = 32
-
     envs = [make_env(env_id, seed=args.seed, rank=i, log_dir=log_dir, add_timestep=False) for i in range(nprocess)]
     envs = DummyVecEnv(envs)
     envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=epsilon, clipob=10., cliprew=10.)
@@ -54,9 +47,8 @@ def main():
                                           actor_output_dim=action_dim,
                                           critic_output_dim=1)
     rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
-    agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                       ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, epsilon)
-
+    agent = VanillaPPO(actor_critic_net, optim_id=args.opt, lr=3e-4, clip_eps=0.2,
+                       max_grad_norm=0.5, n_epoch=10, n_minibatch=32, epsilon=epsilon)
 
     # Learning
     observ = envs.reset()
