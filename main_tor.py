@@ -51,8 +51,7 @@ def main():
     experience = ExperienceBuffer(n_step_per_update, nprocess, observ_dim, action_dim)
 
     # Learning
-    observ = envs.reset()
-    observ = torch.from_numpy(observ).float()
+    observ = envs.reset(); observ = torch.from_numpy(observ).float()
     experience.observations[0].copy_(observ)
 
     for update_idx in range(args.n_update):
