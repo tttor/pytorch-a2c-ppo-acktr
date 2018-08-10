@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
 import os
 import csv
-
+import argparse
 import torch
 import numpy as np
-from scipy.signal import savgol_filter
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
 
 def main():
-    plot_optim()
+    args = parse_args()
+    plot_learning_curve(log_dir=args.log_dir)
 
-    # log_dir = '/home/tor/xprmt/ikostrikov2'
-    # x, y = load_monitor_data(log_dir)
-    # plot(x, y, log_dir)
-
-def plot_optim():
-    log_dir = '/home/tor/xprmt/ikostrikov2/optim-200k-7ad58cf4f169a088fe314eb8a32ec3fc84c19dfa'
+def plot_learning_curve(log_dir):
     dir_names = [n for n in os.listdir(log_dir) if '.png' not in n]
     data = {}
     for dname in dir_names:
@@ -37,7 +33,7 @@ def plot_optim():
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
     plt.title('PPO on Reacher-v2 (maxReward= -3.75)')
-    plt.savefig(os.path.join(log_dir,'plot.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.savefig(os.path.join(log_dir,'learning_curve.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
 def plot(x, y, log_dir):
@@ -119,6 +115,11 @@ def fix_point(x, y, interval):
             fy.append(tmpy)
 
     return fx, fy
+
+def parse_args():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--log_dir', help='root xprmt log dir', type=str, default=None, required=True)
+    return parser.parse_args()
 
 if __name__ == '__main__':
     main()
