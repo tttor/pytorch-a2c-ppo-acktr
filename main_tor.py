@@ -21,7 +21,7 @@ def main():
     nprocess = 1
     nstep_per_update = 2500
     gamma = 0.99
-    eps = 1e-5
+    epsilon = 1e-5
     log_interval = 1
     use_gae=False; tau=None
     tag = '_'.join(['ppo', env_id, args.opt])
@@ -33,8 +33,6 @@ def main():
     # assert not using cuda!
     # assert not using recurrent net!
 
-    ppo_value_loss_coef = 1.0
-    ppo_entropy_coef = 0.0
     ppo_clip_eps = 0.2
     ppo_max_grad_norm = 0.5
     ppo_optim_id = args.opt
@@ -42,10 +40,9 @@ def main():
     ppo_nepoch = 10
     ppo_nminibatch = 32
 
-    envs = [make_env(env_id, seed=args.seed, rank=i, log_dir=log_dir, add_timestep=False)
-            for i in range(nprocess)]
+    envs = [make_env(env_id, seed=args.seed, rank=i, log_dir=log_dir, add_timestep=False) for i in range(nprocess)]
     envs = DummyVecEnv(envs)
-    envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=eps, clipob=10., cliprew=10.)
+    envs = VecNormalize(envs, ob=True, ret=True, gamma=gamma, epsilon=epsilon, clipob=10., cliprew=10.)
     observ_dim = envs.observation_space.shape[0]
     action_dim = envs.action_space.shape[0]
     assert len(envs.observation_space.shape)==1
@@ -58,7 +55,7 @@ def main():
                                           critic_output_dim=1)
     rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
     agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                       ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
+                       ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, epsilon)
 
 
     # Learning
