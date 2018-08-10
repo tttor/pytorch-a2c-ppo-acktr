@@ -16,7 +16,7 @@ class VanillaPPO():
         elif optim_id=='sgd':
             self.optim = torch.optim.SGD(actor_critic_net.parameters(), lr=lr)
         elif optim_id=='lbfgs':
-            self.optim = torch.optim.LBFGS(actor_critic_net.parameters(), lr=0.2)
+            self.optim = torch.optim.LBFGS(actor_critic_net.parameters(), lr=lr)
         else:
             raise NotImplementedError
 
