@@ -46,14 +46,14 @@ def main():
                                           hidden_dim=64,
                                           actor_output_dim=action_dim,
                                           critic_output_dim=1) # one neuron estimating the value of any state
-    rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
+    experience = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
     agent = VanillaPPO(actor_critic_net, optim_id=args.opt, lr=3e-4, clip_eps=0.2,
                        max_grad_norm=0.5, n_epoch=10, n_minibatch=32, epsilon=epsilon)
 
     # Learning
     observ = envs.reset()
     observ = torch.from_numpy(observ).float()
-    rollouts.observations[0].copy_(observ)
+    experience.observations[0].copy_(observ)
 
     for update_idx in range(args.n_update):
         # Rollout for nstep_per_update steps
@@ -72,16 +72,16 @@ def main():
             observ = torch.from_numpy(observ).float()
             observ *= mask
 
-            rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
+            experience.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
 
         # Prepare for update
         with torch.no_grad():
             pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
-        rollouts.compute_returns(pred_next_state_value, gamma)
+        experience.compute_returns(pred_next_state_value, gamma)
 
         # Update
-        loss, value_loss, action_loss, dist_entropy = agent.update(rollouts)
-        rollouts.after_update()
+        loss, value_loss, action_loss, dist_entropy = agent.update(experience)
+        experience.after_update()
 
         # Log
         if (update_idx % log_interval)==0:
