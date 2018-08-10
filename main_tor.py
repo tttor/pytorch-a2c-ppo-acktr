@@ -19,7 +19,7 @@ def main():
     args = parse_args()
     env_id = 'Reacher-v2'
     nprocess = 1
-    nstep_per_update = 2500
+    n_step_per_update = 2500
     gamma = 0.99
     epsilon = 1e-5
     log_interval = 1
@@ -46,7 +46,7 @@ def main():
                                           hidden_dim=64,
                                           actor_output_dim=action_dim,
                                           critic_output_dim=1) # one neuron estimating the value of any state
-    experience = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
+    experience = ExperienceBuffer(n_step_per_update, nprocess, observ_dim, action_dim)
     agent = VanillaPPO(actor_critic_net, optim_id=args.opt, lr=3e-4, clip_eps=0.2,
                        max_grad_norm=0.5, n_epoch=10, n_minibatch=32, epsilon=epsilon)
 
@@ -56,8 +56,8 @@ def main():
     experience.observations[0].copy_(observ)
 
     for update_idx in range(args.n_update):
-        # Rollout for nstep_per_update steps
-        for step_idx in range(nstep_per_update):
+        # Rollout for n_step_per_update steps
+        for step_idx in range(n_step_per_update):
             # Sample actions
             with torch.no_grad():
                 action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
@@ -85,7 +85,7 @@ def main():
 
         # Log
         if (update_idx % log_interval)==0:
-            nstep_so_far = (update_idx+1) * nprocess * nstep_per_update
+            nstep_so_far = (update_idx+1) * nprocess * n_step_per_update
             logs  = ['update {}/{}'.format(update_idx+1, args.n_update)]
             logs += ['loss {:.5f}'.format(loss)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
