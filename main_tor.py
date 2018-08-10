@@ -82,13 +82,13 @@ def main():
 
         # Log
         if (update_idx % log_interval)==0:
-            nstep_so_far = (update_idx+1) * nprocess * n_step_per_update
+            n_step_so_far = (update_idx+1) * nprocess * n_step_per_update
             logs  = ['update {}/{}'.format(update_idx+1, args.n_update)]
             logs += ['loss {:.5f}'.format(loss)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
             logs += ['value_loss {:.5f}'.format(value_loss)]
             logs += ['distrib_entropy {:.5f}'.format(distrib_entropy)]
-            logs += ['nstep_so_far {}'.format(nstep_so_far)]
+            logs += ['n_step_so_far {}'.format(n_step_so_far)]
             logger.log(' | '.join(logs))
 
 def make_stamp(tag):
