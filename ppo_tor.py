@@ -28,8 +28,8 @@ class VanillaPPO():
         # Update n_epoch times
         action_loss_sum = 0.0; value_loss_sum = 0.0; action_distrib_entropy_sum = 0.0; loss_sum = 0.0
         for epoch_idx in range(self.n_epoch):
-
             sample_gen = experience.feed_forward_generator(pred_advs, self.n_minibatch)
+
             for samples in sample_gen:
                 def closure():
                     _observs, _actions, _action_log_probs, _returns, _pred_advs = samples
