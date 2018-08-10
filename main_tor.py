@@ -50,7 +50,7 @@ def main():
                        max_grad_norm=0.5, n_epoch=10, n_minibatch=32, epsilon=epsilon)
     experience = ExperienceBuffer(n_step_per_update, nprocess, observ_dim, action_dim)
 
-    # Learning
+    # Train
     observ = envs.reset(); observ = torch.from_numpy(observ).float()
     experience.observations[0].copy_(observ)
 
