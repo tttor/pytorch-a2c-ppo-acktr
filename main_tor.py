@@ -3,22 +3,20 @@ import os
 import sys
 import socket
 import datetime
+import argparse
 import torch
 import numpy as np
 from baselines import logger
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
 from envs import make_env
+from model_tor import ActorCriticNetwork
+from storage_tor import ExperienceBuffer
+from ppo_tor import VanillaPPO
 
 def main():
-    if len(sys.argv)!=4:
-        print('Wrong argv!')
-        return
-    nupdate = int(sys.argv[1])
-    mode = sys.argv[2]
-    optim_id = sys.argv[3]
-
     # Init
+    args = parse_args()
     env_id = 'Reacher-v2'
     nprocess = 1
     nstep_per_update = 2500
@@ -27,10 +25,10 @@ def main():
     seed = 123
     log_interval = 1
     use_gae=False; tau=None
-    tag = '_'.join(['ppo', env_id, optim_id])
-    log_dir = os.path.join('/home/tor/xprmt/ikostrikov3', make_stamp(tag))
+    tag = '_'.join(['ppo', env_id, args.opt])
+    log_dir = os.path.join(args.log_dir, make_stamp(tag))
     logger.configure(dir=log_dir)
-    torch.manual_seed(seed)
+    torch.manual_seed(args.seed)
     torch.set_num_threads(4)
     assert nprocess==1
     # assert not using cuda!
@@ -40,7 +38,7 @@ def main():
     ppo_entropy_coef = 0.0
     ppo_clip_eps = 0.2
     ppo_max_grad_norm = 0.5
-    ppo_optim_id = optim_id
+    ppo_optim_id = args.opt
     ppo_lr = 3e-4
     ppo_nepoch = 10
     ppo_nminibatch = 32
@@ -55,53 +53,26 @@ def main():
     assert len(envs.action_space.shape)==1
     assert envs.action_space.__class__.__name__ == "Box"
 
-    if mode=='ori':
-        from model import Policy
-        from storage import RolloutStorage
-        import algo
+    actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
+                                          hidden_dim=64,
+                                          actor_output_dim=action_dim,
+                                          critic_output_dim=1)
+    rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
+    agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
+                       ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
 
-        actor_critic_net = Policy(envs.observation_space.shape, envs.action_space,
-                                  recurrent_policy=False)
-        rollouts = RolloutStorage(nstep_per_update, nprocess, envs.observation_space.shape,
-                                  envs.action_space, actor_critic_net.state_size)
-        agent = algo.PPO(actor_critic_net, ppo_clip_eps,
-                            ppo_nepoch, ppo_nminibatch,
-                            ppo_value_loss_coef, ppo_entropy_coef,
-                            ppo_lr, eps, ppo_max_grad_norm)
-    elif mode=='tor':
-        from model_tor import ActorCriticNetwork
-        from storage_tor import ExperienceBuffer
-        from ppo_tor import VanillaPPO
-
-        actor_critic_net = ActorCriticNetwork(input_dim=observ_dim,
-                                              hidden_dim=64,
-                                              actor_output_dim=action_dim,
-                                              critic_output_dim=1)
-        rollouts = ExperienceBuffer(nstep_per_update, nprocess, observ_dim, action_dim)
-        agent = VanillaPPO(actor_critic_net, ppo_clip_eps, ppo_max_grad_norm,
-                           ppo_optim_id, ppo_lr, ppo_nepoch, ppo_nminibatch, eps)
-    else:
-        raise NotImplementedError
 
     # Learning
     observ = envs.reset()
     observ = torch.from_numpy(observ).float()
     rollouts.observations[0].copy_(observ)
 
-    for update_idx in range(nupdate):
+    for update_idx in range(args.n_update):
         # Rollout for nstep_per_update steps
         for step_idx in range(nstep_per_update):
             # Sample actions
             with torch.no_grad():
-                if mode=='ori':
-                    act_response = actor_critic_net.act(rollouts.observations[step_idx],
-                                                        rollouts.states[step_idx],
-                                                        rollouts.masks[step_idx])
-                    pred_state_value, action, action_log_prob, state = act_response
-                elif mode=='tor':
-                    action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
-                else:
-                    raise NotImplementedError
+                action, action_log_prob, pred_state_value = actor_critic_net.act(observ)
             # print(action); print(action_log_prob); print(pred_state_value)
             # exit()
 
@@ -113,26 +84,12 @@ def main():
             observ = torch.from_numpy(observ).float()
             observ *= mask
 
-            if mode=='ori':
-                rollouts.insert(observ, state, action, action_log_prob, pred_state_value, reward, mask)
-            elif mode=='tor':
-                rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
-            else:
-                raise NotImplementedError
+            rollouts.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
 
         # Prepare for update
-        if mode=='ori':
-            with torch.no_grad():
-                pred_next_state_value = actor_critic_net.get_value(rollouts.observations[-1],
-                                                                    rollouts.states[-1],
-                                                                    rollouts.masks[-1]).detach()
-            rollouts.compute_returns(pred_next_state_value, use_gae, gamma, tau)
-        elif mode=='tor':
-            with torch.no_grad():
-                pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
-            rollouts.compute_returns(pred_next_state_value, gamma)
-        else:
-            raise NotImplementedError
+        with torch.no_grad():
+            pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
+        rollouts.compute_returns(pred_next_state_value, gamma)
 
         # Update
         loss, value_loss, action_loss, dist_entropy = agent.update(rollouts)
@@ -141,7 +98,7 @@ def main():
         # Log
         if (update_idx % log_interval)==0:
             nstep_so_far = (update_idx+1) * nprocess * nstep_per_update
-            logs  = ['update {}/{}'.format(update_idx+1, nupdate)]
+            logs  = ['update {}/{}'.format(update_idx+1, args.n_update)]
             logs += ['loss {:.5f}'.format(loss)]
             logs += ['action_loss {:.5f}'.format(action_loss)]
             logs += ['value_loss {:.5f}'.format(value_loss)]
@@ -154,6 +111,14 @@ def make_stamp(tag):
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     stamp = '_'.join([tag, hostname, timestamp])
     return stamp
+
+def parse_args():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--opt', help='optimizer ID', type=str, default=None, required=True)
+    parser.add_argument('--n_update', help='number of update', type=int, default=None, required=True)
+    parser.add_argument('--seed', help='RNG seed', type=int, default=None, required=True)
+    parser.add_argument('--log_dir', help='root xprmt log dir', type=str, default=None, required=True)
+    return parser.parse_args()
 
 if __name__ == '__main__':
     main()
