@@ -3,14 +3,11 @@ import os
 import sys
 import socket
 import datetime
-
 import torch
 import numpy as np
-
 from baselines import logger
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 from baselines.common.vec_env.vec_normalize import VecNormalize
-
 from envs import make_env
 
 def main():
