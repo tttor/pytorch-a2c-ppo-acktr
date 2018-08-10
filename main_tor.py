@@ -72,12 +72,11 @@ def main():
 
             experience.insert(action, action_log_prob, pred_state_value, reward, next_observ=observ, next_mask=mask)
 
-        # Prepare for update
+        # Update
         with torch.no_grad():
             pred_next_state_value = actor_critic_net.predict_state_value(observ).detach()
         experience.compute_returns(pred_next_state_value, gamma)
 
-        # Update
         loss, value_loss, action_loss, distrib_entropy = agent.update(experience)
         experience.after_update()
 
