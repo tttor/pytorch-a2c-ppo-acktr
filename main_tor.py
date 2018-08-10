@@ -55,7 +55,7 @@ def main():
     experience.observations[0].copy_(observ)
 
     for update_idx in range(args.n_update):
-        # Rollout for n_step_per_update steps
+        # Get experience via rollouts for n_step_per_update steps
         for step_idx in range(n_step_per_update):
             # Sample actions
             with torch.no_grad():
