@@ -26,16 +26,16 @@ class ActorCriticNetwork(nn.Module):
         return action_log_prob, action_distrib_entropy, state_value
 
     def predict_state_value(self, observ):
-        state_value, _ = self._forward(observ)
-        return state_value
+        hidden_critic = self.hidden_net.critic_hidden_net(observ)
+        return self.critic_output_net(hidden_critic)
 
     def forward(self, inputs, states, masks):
         raise NotImplementedError
 
     def _forward(self, observ):
-        hidden_actor = self.hidden_net.actor_hidden_net(observ)
-        hidden_critic = self.hidden_net.critic_hidden_net(observ)
-        return self.critic_output_net(hidden_critic), hidden_actor
+        meta_action = self.hidden_net.actor_hidden_net(observ)
+        state_value = self.predict_state_value(observ)
+        return (state_value, meta_action)
 
 class ActorCriticHiddenNetwork(nn.Module):
     def __init__(self, input_dim, hidden_dim):
