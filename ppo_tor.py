@@ -47,23 +47,21 @@ class VanillaPPO():
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(self.actor_critic_net.parameters(), self.max_grad_norm)
 
-                    # return (loss, action_loss.item(), value_loss.item(), action_distrib_entropy.item())
                     assert not(torch.isnan(loss))
+                    nonlocal loss_sum, action_loss_sum, value_loss_sum, action_distrib_entropy_sum
+                    loss_sum += loss.item()
+                    action_loss_sum += action_loss.item()
+                    value_loss_sum += value_loss.item()
+                    action_distrib_entropy_sum += action_distrib_entropy.item()
                     return loss
 
                 # Step the optim
-                loss = self.optim.step(closure)
-                # loss, action_loss, value_loss, action_distrib_entropy = self.optim.step(closure)
-
-                loss_sum += loss
-                # action_loss_sum += action_loss
-                # value_loss_sum += value_loss
-                # action_distrib_entropy_sum += action_distrib_entropy
+                self.optim.step(closure)
 
         # Summarize losses
         # Note: nupdate below may not be equal to #iteration in the loop above since
         # in sampler generator, we set drop_last=False,
-        # this also implies: do not use mean() fn, eg, action_loss_array.mean()
+        # this also implies: do not use mean(), eg action_loss_array.mean()
         nupdate = self.n_epoch * self.n_minibatch
         loss = loss_sum / nupdate
         action_loss = action_loss_sum / nupdate
