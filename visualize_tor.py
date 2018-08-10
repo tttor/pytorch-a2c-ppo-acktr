@@ -85,7 +85,6 @@ def load_monitor_data(log_dir):
     return (x, y)
 
 def smooth_reward_curve(x, y):
-    # Copy from:
     # https://github.com/ikostrikov/pytorch-a2c-ppo-acktr/blob/4d95ec364c7303566c6a52fb0a254640e931609d/visualize.py#L18
     # Halfwidth of our smoothing convolution
     halfwidth = min(31, int(np.ceil(len(x) / 30)))
@@ -97,7 +96,6 @@ def smooth_reward_curve(x, y):
     return xsmoo[::downsample], ysmoo[::downsample]
 
 def fix_point(x, y, interval):
-    # Copy from:
     # https://github.com/ikostrikov/pytorch-a2c-ppo-acktr/blob/4d95ec364c7303566c6a52fb0a254640e931609d/visualize.py#L29
     np.insert(x, 0, 0)
     np.insert(y, 0, 0)
