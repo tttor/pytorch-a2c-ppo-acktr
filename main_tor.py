@@ -46,9 +46,9 @@ def main():
                                           hidden_dim=64,
                                           actor_output_dim=action_dim,
                                           critic_output_dim=1) # one neuron estimating the value of any state
-    experience = ExperienceBuffer(n_step_per_update, nprocess, observ_dim, action_dim)
     agent = VanillaPPO(actor_critic_net, optim_id=args.opt, lr=3e-4, clip_eps=0.2,
                        max_grad_norm=0.5, n_epoch=10, n_minibatch=32, epsilon=epsilon)
+    experience = ExperienceBuffer(n_step_per_update, nprocess, observ_dim, action_dim)
 
     # Learning
     observ = envs.reset()
