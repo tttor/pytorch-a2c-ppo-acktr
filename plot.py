@@ -27,7 +27,7 @@ def plot_opt_data(mode, data, log_dir):
     plt.grid(True)
     plt.xlabel('ith update')
     plt.ylabel(mode.lower()+(': y+'+str(abs(y_min))) if y_min < 0. else '')
-    plt.title('PPO')
+    plt.title('PPO: '+mode.lower())
     plt.savefig(os.path.join(log_dir,mode.lower().replace(' ','_')+'.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
@@ -41,7 +41,7 @@ def plot_learning_curve(data, log_dir):
     plt.yticks(yticks)
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
-    plt.title('PPO')
+    plt.title('PPO: return')
     plt.savefig(os.path.join(log_dir,'learning_curve_return.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
