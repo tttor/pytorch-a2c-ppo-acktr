@@ -37,10 +37,7 @@ def plot_learning_curve(data, log_dir):
     fig, ax = plt.subplots()
     x, y = data
     plt.plot(x, y, '-')
-    ytick_offset = 5
-    yticks = np.arange(min(y)-ytick_offset, max(y)+ytick_offset, 10)
     plt.grid(True)
-    plt.yticks(yticks)
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
     plt.title(' '.join(['PPO', 'return', repo_name]))
