@@ -44,7 +44,7 @@ def plot_learning_curve(data, log_dir):
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
     plt.title(' '.join(['PPO', 'return', repo_name]))
-    plt.savefig(os.path.join(log_dir,'learning_curve_return_'+repo_name+'.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.savefig(os.path.join(log_dir,'return_'+repo_name+'.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
 def load_opt_data(log_dir):
