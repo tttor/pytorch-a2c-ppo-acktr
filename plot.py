@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 
+repo_name = 'ikostrikov_pytorch-a2c-ppo-acktr'
+
 def main():
     args = parse_args()
 
@@ -27,8 +29,8 @@ def plot_opt_data(mode, data, log_dir):
     plt.grid(True)
     plt.xlabel('ith update')
     plt.ylabel(mode.lower()+(': y+'+str(abs(y_min))) if y_min < 0. else '')
-    plt.title('PPO: '+mode.lower())
-    plt.savefig(os.path.join(log_dir,mode.lower().replace(' ','_')+'.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.title(' '.join(['PPO', mode.lower(), repo_name]))
+    plt.savefig(os.path.join(log_dir,mode.lower().replace(' ','_')+'_'+repo_name+'.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
 def plot_learning_curve(data, log_dir):
@@ -41,8 +43,8 @@ def plot_learning_curve(data, log_dir):
     plt.yticks(yticks)
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
-    plt.title('PPO: return')
-    plt.savefig(os.path.join(log_dir,'learning_curve_return.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.title(' '.join(['PPO', 'return', repo_name]))
+    plt.savefig(os.path.join(log_dir,'learning_curve_return_'+repo_name+'.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
 def load_opt_data(log_dir):
