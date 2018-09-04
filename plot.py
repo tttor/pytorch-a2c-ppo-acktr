@@ -12,22 +12,14 @@ def main():
     plot_learning_curve(log_dir=args.log_dir)
 
 def plot_learning_curve(log_dir):
-    dir_names = [n for n in os.listdir(log_dir) if '.png' not in n]
-    data = {}
-    for dname in dir_names:
-        data[dname] = load_monitor_data(os.path.join(log_dir, dname))
+    data = load_monitor_data(log_dir)
 
     fig, ax = plt.subplots()
-    ys = []
-    for k, v in data.items():
-        x, y = v
-        plt.plot(x, y, '-', label=k)
-        ys += y
-
+    x, y = data
+    plt.plot(x, y, '-')
     ytick_offset = 5
-    yticks = np.arange(min(ys)-ytick_offset, max(ys)+ytick_offset, 10)
-
-    ax.legend(loc='lower right')
+    yticks = np.arange(min(y)-ytick_offset, max(y)+ytick_offset, 10)
+    # ax.legend(loc='lower right')
     plt.grid(True)
     plt.yticks(yticks)
     plt.xlabel('#steps')
