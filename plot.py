@@ -9,37 +9,52 @@ from scipy.signal import savgol_filter
 
 def main():
     args = parse_args()
-    plot_learning_curve(log_dir=args.log_dir)
 
-def plot_learning_curve(log_dir):
-    data = load_monitor_data(log_dir)
+    mon_data = load_monitor_data(args.log_dir)
+    plot_learning_curve(mon_data, args.log_dir)
 
+    opt_data = load_opt_data(args.log_dir)
+    plot_opt_data('policy loss', opt_data, args.log_dir)
+    plot_opt_data('value loss', opt_data, args.log_dir)
+    plot_opt_data('entropy', opt_data, args.log_dir)
+
+def plot_opt_data(mode, data, log_dir):
+    x, y = data['Updates'], data[mode]
+    y_min = min(y)
+    if y_min < 0.: y = [yi+abs(y_min) for yi in y]
+    fig, ax = plt.subplots()
+    plt.semilogy(x, y, '-')
+    plt.grid(True)
+    plt.xlabel('ith update')
+    plt.ylabel(mode.lower()+(': y+'+str(abs(y_min))) if y_min < 0. else '')
+    plt.title('PPO')
+    plt.savefig(os.path.join(log_dir,mode.lower().replace(' ','_')+'.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.close(fig)
+
+def plot_learning_curve(data, log_dir):
     fig, ax = plt.subplots()
     x, y = data
     plt.plot(x, y, '-')
     ytick_offset = 5
     yticks = np.arange(min(y)-ytick_offset, max(y)+ytick_offset, 10)
-    # ax.legend(loc='lower right')
     plt.grid(True)
     plt.yticks(yticks)
     plt.xlabel('#steps')
     plt.ylabel('return (undiscounted)')
-    plt.title('PPO on Reacher-v2 (maxReward= -3.75)')
-    plt.savefig(os.path.join(log_dir,'learning_curve.png'),dpi=300,format='png',bbox_inches='tight');
+    plt.title('PPO')
+    plt.savefig(os.path.join(log_dir,'learning_curve_return.png'),dpi=300,format='png',bbox_inches='tight');
     plt.close(fig)
 
-def plot(x, y, log_dir):
-    ytick_offset = 5
-    yticks = np.arange(min(y)-ytick_offset, max(y)+ytick_offset, 10)
-
-    fig, ax = plt.subplots()
-    plt.plot(x, y, '-')
-    plt.yticks(yticks)
-    plt.grid(True)
-    plt.xlabel('#steps')
-    plt.ylabel('return')
-    plt.savefig(os.path.join(log_dir,'plot.png'),dpi=300,format='png',bbox_inches='tight');
-    plt.close(fig)
+def load_opt_data(log_dir):
+    data = []; data_dict = {}
+    keys = ['Updates', 'num timesteps', 'entropy', 'value loss', 'policy loss']
+    with open(os.path.join(log_dir, 'terminal.txt'), 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            data.append({k: float(v.replace(k,'')) for k, v in row.items() if k in keys})
+    for k in keys:
+        data_dict[k] = [datum[k] for datum in data]
+    return data_dict
 
 def load_monitor_data(log_dir):
     # monitoring data produced with:
